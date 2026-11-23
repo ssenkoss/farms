@@ -476,6 +476,16 @@
     font-size: 12px;
     color: var(--med);
   }
+  .video-link-alt {
+    margin-top: 8px;
+    display: flex;
+    gap: 6px;
+  }
+  .video-link-alt input {
+    background: var(--panel);
+    padding: 6px 9px;
+    font-size: 12px;
+  }
   .modal-actions {
     display: flex;
     justify-content: flex-end;
@@ -648,13 +658,16 @@
     </div>
 
     <div class="form-group">
-      <label>Видео с инструкцией (MP4 / WebM / MOV / MKV до 200 МБ)</label>
+      <label>Видео с инструкцией (MP4 / WebM / MOV / MKV до 100 МБ)</label>
       <div class="file-box" id="videoDropZone" onclick="document.getElementById('fVideoInput').click()">
         <input type="file" id="fVideoInput" accept="video/*,.mp4,.webm,.mov,.mkv" onchange="handleVideoSelect(event)">
         <div class="drop-title">🎬 Перетащите видео сюда или нажмите для выбора</div>
-        <div class="hint">Загрузится автоматически в облако и встроится в карточку.</div>
+        <div class="hint">Загрузится в облако (Tmpfiles / 0x0.st / Litterbox) и встроится в карточку.</div>
         <div class="video-status" id="videoUploadStatus"></div>
         <div id="videoPreview" onclick="event.stopPropagation()"></div>
+        <div class="video-link-alt" onclick="event.stopPropagation()">
+          <input type="text" id="fVideoManualUrl" placeholder="Или вставьте прямую ссылку на .mp4 сюда..." oninput="handleManualVideoUrl(this.value)">
+        </div>
       </div>
     </div>
 
@@ -825,36 +838,67 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     e.target.value = "";
   }
 
-  async function uploadToCatbox(file) {
-    const endpoints = [
-      "https://catbox.moe/user/api.php",
-      "https://corsproxy.io/?" + encodeURIComponent("https://catbox.moe/user/api.php"),
-      "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://catbox.moe/user/api.php")
-    ];
+  // Загрузка видео через 3 независимых CORS-дружелюбных хостинга (работают в РФ без VPN)
+  async function uploadVideoToCloud(file) {
+    const errors = [];
 
-    let lastErr = "Не удалось подключиться к серверу загрузки";
-    for (const url of endpoints) {
-      try {
-        const formData = new FormData();
-        formData.append("reqtype", "fileupload");
-        formData.append("fileToUpload", file, file.name || "video.mp4");
-
-        const res = await fetch(url, {
-          method: "POST",
-          body: formData
-        });
-        if (!res.ok) {
-          lastErr = "HTTP " + res.status;
-          continue;
+    // 1. Tmpfiles.org (официально поддерживает CORS из браузера, без блокировок в РФ)
+    try {
+      const fd = new FormData();
+      fd.append("file", file, file.name || "video.mp4");
+      const res = await fetch("https://tmpfiles.org/api/v1/upload", {
+        method: "POST",
+        body: fd
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json && json.data && json.data.url) {
+          // Преобразуем ссылку просмотра в прямую ссылку для <video>
+          return json.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
         }
-        const text = (await res.text()).trim();
-        if (text.startsWith("http")) return text;
-        lastErr = text.slice(0, 80) || "Пустой ответ сервера";
-      } catch (e) {
-        lastErr = e.message;
       }
+      errors.push("tmpfiles: HTTP " + res.status);
+    } catch (e) {
+      errors.push("tmpfiles: " + e.message);
     }
-    throw new Error(lastErr);
+
+    // 2. File.io (CORS-совместимый)
+    try {
+      const fd = new FormData();
+      fd.append("file", file, file.name || "video.mp4");
+      const res = await fetch("https://file.io", {
+        method: "POST",
+        body: fd
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json && json.link) return json.link;
+      }
+      errors.push("file.io: HTTP " + res.status);
+    } catch (e) {
+      errors.push("file.io: " + e.message);
+    }
+
+    // 3. Uguu.se (CORS-совместимый прямой хостинг)
+    try {
+      const fd = new FormData();
+      fd.append("files[]", file, file.name || "video.mp4");
+      const res = await fetch("https://uguu.se/upload", {
+        method: "POST",
+        body: fd
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json && json.files && json.files[0] && json.files[0].url) {
+          return json.files[0].url;
+        }
+      }
+      errors.push("uguu: HTTP " + res.status);
+    } catch (e) {
+      errors.push("uguu: " + e.message);
+    }
+
+    throw new Error("Не удалось загрузить файл (" + errors.join("; ") + ")");
   }
 
   async function processVideoFile(file) {
@@ -864,8 +908,8 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
       alert("Выберите видеофайл (MP4, WebM, MOV)!");
       return;
     }
-    if (file.size > 200 * 1024 * 1024) {
-      alert("Файл слишком большой! Максимальный размер видео — 200 МБ.");
+    if (file.size > 100 * 1024 * 1024) {
+      alert("Файл слишком большой! Максимальный размер видео — 100 МБ.");
       return;
     }
 
@@ -877,14 +921,15 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     statusEl.textContent = `⏳ Загрузка видео (${(file.size / 1024 / 1024).toFixed(1)} МБ)... Не закрывайте окно.`;
 
     try {
-      const url = await uploadToCatbox(file);
+      const url = await uploadVideoToCloud(file);
       draftVideoUrl = url;
+      document.getElementById("fVideoManualUrl").value = url;
       statusEl.style.color = "var(--green)";
       statusEl.textContent = "✓ Видео успешно загружено!";
       renderDraftPreviews();
     } catch (err) {
       statusEl.style.color = "var(--crit)";
-      statusEl.textContent = "❌ Ошибка загрузки: " + err.message;
+      statusEl.textContent = "❌ " + err.message;
     } finally {
       isUploadingVideo = false;
       saveBtn.disabled = false;
@@ -894,6 +939,18 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
   function handleVideoSelect(e) {
     processVideoFile(e.target.files[0]);
     e.target.value = "";
+  }
+
+  function handleManualVideoUrl(val) {
+    draftVideoUrl = val.trim();
+    const statusEl = document.getElementById("videoUploadStatus");
+    if (draftVideoUrl) {
+      statusEl.style.color = "var(--green)";
+      statusEl.textContent = "✓ Ссылка на видео прикреплена";
+    } else {
+      statusEl.textContent = "";
+    }
+    renderDraftPreviews();
   }
 
   function removeDraftCover() {
@@ -910,6 +967,7 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
   function removeDraftVideo() {
     draftVideoUrl = "";
     document.getElementById("fVideoInput").value = "";
+    document.getElementById("fVideoManualUrl").value = "";
     document.getElementById("videoUploadStatus").textContent = "";
     renderDraftPreviews();
   }
@@ -927,7 +985,7 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
 
     const vWrap = document.getElementById("videoPreview");
     vWrap.innerHTML = draftVideoUrl
-      ? `<div class="preview-video-box"><video src="${draftVideoUrl}" controls></video><button type="button" class="preview-del" onclick="removeDraftVideo()">×</button></div>`
+      ? `<div class="preview-video-box"><video src="${esc(draftVideoUrl)}" controls></video><button type="button" class="preview-del" onclick="removeDraftVideo()">×</button></div>`
       : "";
   }
 
@@ -1014,6 +1072,7 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     document.getElementById("fCoverInput").value = "";
     document.getElementById("fNoteImgsInput").value = "";
     document.getElementById("fVideoInput").value = "";
+    document.getElementById("fVideoManualUrl").value = "";
     document.getElementById("videoUploadStatus").textContent = "";
     renderDraftPreviews();
   }
@@ -1054,6 +1113,7 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     document.getElementById("fCoverInput").value = "";
     document.getElementById("fNoteImgsInput").value = "";
     document.getElementById("fVideoInput").value = "";
+    document.getElementById("fVideoManualUrl").value = draftVideoUrl;
     document.getElementById("videoUploadStatus").textContent = draftVideoUrl ? "✓ Видео прикреплено" : "";
     document.getElementById("videoUploadStatus").style.color = "var(--green)";
 
