@@ -161,7 +161,6 @@
     box-shadow: 0 0 0 1px rgba(239, 83, 80, 0.35), 0 8px 24px rgba(239, 83, 80, 0.14);
   }
 
-  /* Красный восклицательный знак сверху */
   .broken-banner {
     background: rgba(239, 83, 80, 0.16);
     border-bottom: 1px solid rgba(239, 83, 80, 0.45);
@@ -649,9 +648,9 @@
     </div>
 
     <div class="form-group">
-      <label>Видео с инструкцией (MP4 / WebM / MOV до 200 МБ)</label>
+      <label>Видео с инструкцией (MP4 / WebM / MOV / MKV до 200 МБ)</label>
       <div class="file-box" id="videoDropZone" onclick="document.getElementById('fVideoInput').click()">
-        <input type="file" id="fVideoInput" accept="video/*" onchange="handleVideoSelect(event)">
+        <input type="file" id="fVideoInput" accept="video/*,.mp4,.webm,.mov,.mkv" onchange="handleVideoSelect(event)">
         <div class="drop-title">🎬 Перетащите видео сюда или нажмите для выбора</div>
         <div class="hint">Загрузится автоматически в облако и встроится в карточку.</div>
         <div class="video-status" id="videoUploadStatus"></div>
@@ -827,34 +826,41 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
   }
 
   async function uploadToCatbox(file) {
-    const formData = new FormData();
-    formData.append("reqtype", "fileupload");
-    formData.append("fileToUpload", file);
+    const endpoints = [
+      "https://catbox.moe/user/api.php",
+      "https://corsproxy.io/?" + encodeURIComponent("https://catbox.moe/user/api.php"),
+      "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://catbox.moe/user/api.php")
+    ];
 
-    try {
-      const res = await fetch("https://catbox.moe/user/api.php", {
-        method: "POST",
-        body: formData
-      });
-      if (res.ok) {
-        const url = (await res.text()).trim();
-        if (url.startsWith("http")) return url;
+    let lastErr = "Не удалось подключиться к серверу загрузки";
+    for (const url of endpoints) {
+      try {
+        const formData = new FormData();
+        formData.append("reqtype", "fileupload");
+        formData.append("fileToUpload", file, file.name || "video.mp4");
+
+        const res = await fetch(url, {
+          method: "POST",
+          body: formData
+        });
+        if (!res.ok) {
+          lastErr = "HTTP " + res.status;
+          continue;
+        }
+        const text = (await res.text()).trim();
+        if (text.startsWith("http")) return text;
+        lastErr = text.slice(0, 80) || "Пустой ответ сервера";
+      } catch (e) {
+        lastErr = e.message;
       }
-    } catch (_) {}
-
-    const proxyRes = await fetch("https://corsproxy.io/?" + encodeURIComponent("https://catbox.moe/user/api.php"), {
-      method: "POST",
-      body: formData
-    });
-    if (!proxyRes.ok) throw new Error("Сервер загрузки видео недоступен (" + proxyRes.status + ")");
-    const proxyUrl = (await proxyRes.text()).trim();
-    if (!proxyUrl.startsWith("http")) throw new Error("Ошибка ответа сервера видео");
-    return proxyUrl;
+    }
+    throw new Error(lastErr);
   }
 
   async function processVideoFile(file) {
     if (!file) return;
-    if (!file.type.startsWith("video/")) {
+    const isVideoExt = /\.(mp4|webm|mov|mkv|avi)$/i.test(file.name || "");
+    if (!file.type.startsWith("video/") && !isVideoExt) {
       alert("Выберите видеофайл (MP4, WebM, MOV)!");
       return;
     }
@@ -1125,7 +1131,6 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     await pushFarms();
   }
 
-  // Система репортов (без пароля на отправку, чтобы любой игрок мог сообщить о поломке)
   function openReportModal(id) {
     const farm = farms.find(f => f.id === id);
     if (!farm) return;
