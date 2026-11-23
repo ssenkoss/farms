@@ -336,39 +336,6 @@
   }
   .note-thumb:hover { border-color: var(--green); transform: scale(1.03); }
 
-  .video-wrap {
-    margin-top: 2px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .card-video {
-    width: 100%;
-    max-height: 210px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: #000;
-    display: block;
-  }
-  .video-fallback-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    text-decoration: none;
-    padding: 7px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    transition: 0.15s;
-  }
-  .video-fallback-link:hover {
-    border-color: var(--green);
-    background: #2c352c;
-  }
-
   .card-foot {
     padding: 10px 15px;
     border-top: 1px solid var(--border);
@@ -458,23 +425,11 @@
     width: 82px;
     height: 60px;
   }
-  .preview-item img, .preview-item video {
+  .preview-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 5px;
-    border: 1px solid var(--border);
-    background: #000;
-  }
-  .preview-video-box {
-    position: relative;
-    width: 100%;
-    margin-top: 8px;
-  }
-  .preview-video-box video {
-    width: 100%;
-    max-height: 150px;
-    border-radius: 6px;
     border: 1px solid var(--border);
     background: #000;
   }
@@ -494,21 +449,6 @@
     text-align: center;
     cursor: pointer;
     z-index: 2;
-  }
-  .video-status {
-    margin-top: 6px;
-    font-size: 12px;
-    color: var(--med);
-  }
-  .video-link-alt {
-    margin-top: 8px;
-    display: flex;
-    gap: 6px;
-  }
-  .video-link-alt input {
-    background: var(--panel);
-    padding: 6px 9px;
-    font-size: 12px;
   }
   .modal-actions {
     display: flex;
@@ -681,20 +621,6 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label>Видео с инструкцией (MP4 / WebM / MOV до 100 МБ)</label>
-      <div class="file-box" id="videoDropZone" onclick="document.getElementById('fVideoInput').click()">
-        <input type="file" id="fVideoInput" accept="video/*,.mp4,.webm,.mov,.mkv" onchange="handleVideoSelect(event)">
-        <div class="drop-title">🎬 Перетащите видео сюда или нажмите для выбора</div>
-        <div class="hint">Загружается на прямой видеохостинг без блокировок плеера.</div>
-        <div class="video-status" id="videoUploadStatus"></div>
-        <div id="videoPreview" onclick="event.stopPropagation()"></div>
-        <div class="video-link-alt" onclick="event.stopPropagation()">
-          <input type="text" id="fVideoManualUrl" placeholder="Или вставьте ссылку на видео (YouTube / Google Диск / .mp4)..." oninput="handleManualVideoUrl(this.value)">
-        </div>
-      </div>
-    </div>
-
     <div class="modal-actions">
       <button onclick="closeModal('addModal')">Отмена</button>
       <button class="primary" id="saveBtn" onclick="saveFarm()">Сохранить</button>
@@ -763,8 +689,6 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
   let reportingFarmId = null;
   let draftCover = "";
   let draftNoteImgs = [];
-  let draftVideoUrl = "";
-  let isUploadingVideo = false;
 
   function getConfig() {
     return {
@@ -806,7 +730,6 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
   window.addEventListener("DOMContentLoaded", () => {
     setupDropZone("coverDropZone", files => processCoverFile(files[0]));
     setupDropZone("noteImgsDropZone", files => processNoteImgFiles(files));
-    setupDropZone("videoDropZone", files => processVideoFile(files[0]));
   });
 
   function compressImage(file, maxW, quality) {
@@ -862,122 +785,6 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     e.target.value = "";
   }
 
-  // Загрузка видео на серверы, которые отдают прямой видеопоток без HTML-страниц и без истечения за час
-  async function uploadVideoToCloud(file) {
-    const errors = [];
-
-    // 1. Uguu.se (отдаёт прямую ссылку на сам файл .mp4, отлично играет в <video>)
-    try {
-      const fd = new FormData();
-      fd.append("files[]", file, file.name || "video.mp4");
-      const res = await fetch("https://uguu.se/upload", {
-        method: "POST",
-        body: fd
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json && json.files && json.files[0] && json.files[0].url) {
-          return json.files[0].url;
-        }
-      }
-      errors.push("uguu: HTTP " + res.status);
-    } catch (e) {
-      errors.push("uguu: " + e.message);
-    }
-
-    // 2. Pomf2.lain.la (постоянный прямой файловый хостинг без CORS-блокировок)
-    try {
-      const fd = new FormData();
-      fd.append("files[]", file, file.name || "video.mp4");
-      const res = await fetch("https://pomf2.lain.la/upload.php", {
-        method: "POST",
-        body: fd
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json && json.success && json.files && json.files[0] && json.files[0].url) {
-          return json.files[0].url;
-        }
-      }
-      errors.push("pomf2: HTTP " + res.status);
-    } catch (e) {
-      errors.push("pomf2: " + e.message);
-    }
-
-    // 3. Qu.ax (постоянный прямой файловый хостинг с поддержкой CORS)
-    try {
-      const fd = new FormData();
-      fd.append("files[]", file, file.name || "video.mp4");
-      const res = await fetch("https://qu.ax/upload.php", {
-        method: "POST",
-        body: fd
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json && json.success && json.files && json.files[0] && json.files[0].url) {
-          return json.files[0].url;
-        }
-      }
-      errors.push("qu.ax: HTTP " + res.status);
-    } catch (e) {
-      errors.push("qu.ax: " + e.message);
-    }
-
-    throw new Error("Не удалось загрузить файл (" + errors.join("; ") + ")");
-  }
-
-  async function processVideoFile(file) {
-    if (!file) return;
-    const isVideoExt = /\.(mp4|webm|mov|mkv|avi)$/i.test(file.name || "");
-    if (!file.type.startsWith("video/") && !isVideoExt) {
-      alert("Выберите видеофайл (MP4, WebM, MOV)!");
-      return;
-    }
-    if (file.size > 100 * 1024 * 1024) {
-      alert("Файл слишком большой! Максимальный размер видео — 100 МБ.");
-      return;
-    }
-
-    const statusEl = document.getElementById("videoUploadStatus");
-    const saveBtn = document.getElementById("saveBtn");
-    isUploadingVideo = true;
-    saveBtn.disabled = true;
-    statusEl.style.color = "var(--med)";
-    statusEl.textContent = `⏳ Загрузка видео (${(file.size / 1024 / 1024).toFixed(1)} МБ)... Не закрывайте окно.`;
-
-    try {
-      const url = await uploadVideoToCloud(file);
-      draftVideoUrl = url;
-      document.getElementById("fVideoManualUrl").value = url;
-      statusEl.style.color = "var(--green)";
-      statusEl.textContent = "✓ Видео успешно загружено!";
-      renderDraftPreviews();
-    } catch (err) {
-      statusEl.style.color = "var(--crit)";
-      statusEl.textContent = "❌ " + err.message;
-    } finally {
-      isUploadingVideo = false;
-      saveBtn.disabled = false;
-    }
-  }
-
-  function handleVideoSelect(e) {
-    processVideoFile(e.target.files[0]);
-    e.target.value = "";
-  }
-
-  function handleManualVideoUrl(val) {
-    draftVideoUrl = val.trim();
-    const statusEl = document.getElementById("videoUploadStatus");
-    if (draftVideoUrl) {
-      statusEl.style.color = "var(--green)";
-      statusEl.textContent = "✓ Ссылка на видео прикреплена";
-    } else {
-      statusEl.textContent = "";
-    }
-    renderDraftPreviews();
-  }
-
   function removeDraftCover() {
     draftCover = "";
     document.getElementById("fCoverInput").value = "";
@@ -987,40 +794,6 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
   function removeDraftNoteImg(idx) {
     draftNoteImgs.splice(idx, 1);
     renderDraftPreviews();
-  }
-
-  function removeDraftVideo() {
-    draftVideoUrl = "";
-    document.getElementById("fVideoInput").value = "";
-    document.getElementById("fVideoManualUrl").value = "";
-    document.getElementById("videoUploadStatus").textContent = "";
-    renderDraftPreviews();
-  }
-
-  // Преобразование ссылок YouTube / Google Drive в embed-плеер, если вставлена внешняя ссылка
-  function buildVideoPlayerHtml(url) {
-    if (!url) return "";
-    const safeUrl = esc(url);
-
-    // YouTube
-    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    if (ytMatch) {
-      return `<div class="video-wrap"><iframe class="card-video" style="height:200px;" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allowfullscreen></iframe></div>`;
-    }
-
-    // Google Drive
-    const gdMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-    if (gdMatch) {
-      return `<div class="video-wrap"><iframe class="card-video" style="height:200px;" src="https://drive.google.com/file/d/${gdMatch[1]}/preview" frameborder="0" allowfullscreen></iframe></div>`;
-    }
-
-    // Обычное видео + запасная кнопка открытия в новой вкладке
-    return `
-      <div class="video-wrap">
-        <video class="card-video" src="${safeUrl}" controls playsinline preload="metadata"></video>
-        <a class="video-fallback-link" href="${safeUrl}" target="_blank" rel="noopener noreferrer">▶ Открыть / скачать видео в новой вкладке</a>
-      </div>
-    `;
   }
 
   function renderDraftPreviews() {
@@ -1033,11 +806,6 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     nWrap.innerHTML = draftNoteImgs.map((src, i) =>
       `<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="removeDraftNoteImg(${i})">×</button></div>`
     ).join("");
-
-    const vWrap = document.getElementById("videoPreview");
-    vWrap.innerHTML = draftVideoUrl
-      ? `<div class="preview-video-box">${buildVideoPlayerHtml(draftVideoUrl)}<button type="button" class="preview-del" onclick="removeDraftVideo()">×</button></div>`
-      : "";
   }
 
   async function loadFarms() {
@@ -1119,12 +887,8 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     document.getElementById("fNote").value = "";
     draftCover = "";
     draftNoteImgs = [];
-    draftVideoUrl = "";
     document.getElementById("fCoverInput").value = "";
     document.getElementById("fNoteImgsInput").value = "";
-    document.getElementById("fVideoInput").value = "";
-    document.getElementById("fVideoManualUrl").value = "";
-    document.getElementById("videoUploadStatus").textContent = "";
     renderDraftPreviews();
   }
 
@@ -1159,14 +923,9 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
 
     draftCover = farm.cover || "";
     draftNoteImgs = Array.isArray(farm.noteImgs) ? farm.noteImgs.slice() : [];
-    draftVideoUrl = farm.video || "";
 
     document.getElementById("fCoverInput").value = "";
     document.getElementById("fNoteImgsInput").value = "";
-    document.getElementById("fVideoInput").value = "";
-    document.getElementById("fVideoManualUrl").value = draftVideoUrl;
-    document.getElementById("videoUploadStatus").textContent = draftVideoUrl ? "✓ Видео прикреплено" : "";
-    document.getElementById("videoUploadStatus").style.color = "var(--green)";
 
     renderDraftPreviews();
     document.getElementById("addModal").classList.add("open");
@@ -1181,10 +940,6 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
   }
 
   function closeModal(id) {
-    if (id === "addModal" && isUploadingVideo) {
-      alert("Дождитесь окончания загрузки видео!");
-      return;
-    }
     editingFarmId = null;
     reportingFarmId = null;
     document.getElementById(id).classList.remove("open");
@@ -1199,7 +954,6 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
   }
 
   async function saveFarm() {
-    if (isUploadingVideo) return;
     const name = document.getElementById("fName").value.trim();
     const rate = document.getElementById("fRate").value.trim();
     if (!name || !rate) {
@@ -1223,7 +977,6 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
       author: document.getElementById("fAuthor").value.trim() || "Не указан",
       cover: draftCover,
       noteImgs: draftNoteImgs.slice(),
-      video: draftVideoUrl,
       reports: existingFarm && Array.isArray(existingFarm.reports) ? existingFarm.reports : []
     };
 
@@ -1385,7 +1138,6 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
       const noteImgsHtml = (Array.isArray(f.noteImgs) && f.noteImgs.length)
         ? `<div class="note-thumbs">${f.noteImgs.map(src => `<img class="note-thumb" src="${src}" alt="Фото уточнения" onclick="openLightbox('${src}')">`).join("")}</div>`
         : "";
-      const videoHtml = buildVideoPlayerHtml(f.video);
 
       return `
         <div class="card ${isBroken ? "broken" : ""}">
@@ -1410,7 +1162,6 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
             </div>
             ${f.note ? `<div class="note">${esc(f.note)}</div>` : ""}
             ${noteImgsHtml}
-            ${videoHtml}
           </div>
           <div class="card-foot">
             <span>Построил: <b>${esc(f.author)}</b></span>
