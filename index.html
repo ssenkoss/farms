@@ -336,13 +336,37 @@
   }
   .note-thumb:hover { border-color: var(--green); transform: scale(1.03); }
 
+  .video-wrap {
+    margin-top: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
   .card-video {
     width: 100%;
     max-height: 210px;
     border-radius: 6px;
     border: 1px solid var(--border);
     background: #000;
-    margin-top: 2px;
+    display: block;
+  }
+  .video-fallback-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    text-decoration: none;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    transition: 0.15s;
+  }
+  .video-fallback-link:hover {
+    border-color: var(--green);
+    background: #2c352c;
   }
 
   .card-foot {
@@ -658,15 +682,15 @@
     </div>
 
     <div class="form-group">
-      <label>Видео с инструкцией (MP4 / WebM / MOV / MKV до 100 МБ)</label>
+      <label>Видео с инструкцией (MP4 / WebM / MOV до 100 МБ)</label>
       <div class="file-box" id="videoDropZone" onclick="document.getElementById('fVideoInput').click()">
         <input type="file" id="fVideoInput" accept="video/*,.mp4,.webm,.mov,.mkv" onchange="handleVideoSelect(event)">
         <div class="drop-title">🎬 Перетащите видео сюда или нажмите для выбора</div>
-        <div class="hint">Загрузится в облако (Tmpfiles / 0x0.st / Litterbox) и встроится в карточку.</div>
+        <div class="hint">Загружается на прямой видеохостинг без блокировок плеера.</div>
         <div class="video-status" id="videoUploadStatus"></div>
         <div id="videoPreview" onclick="event.stopPropagation()"></div>
         <div class="video-link-alt" onclick="event.stopPropagation()">
-          <input type="text" id="fVideoManualUrl" placeholder="Или вставьте прямую ссылку на .mp4 сюда..." oninput="handleManualVideoUrl(this.value)">
+          <input type="text" id="fVideoManualUrl" placeholder="Или вставьте ссылку на видео (YouTube / Google Диск / .mp4)..." oninput="handleManualVideoUrl(this.value)">
         </div>
       </div>
     </div>
@@ -838,48 +862,11 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     e.target.value = "";
   }
 
-  // Загрузка видео через 3 независимых CORS-дружелюбных хостинга (работают в РФ без VPN)
+  // Загрузка видео на серверы, которые отдают прямой видеопоток без HTML-страниц и без истечения за час
   async function uploadVideoToCloud(file) {
     const errors = [];
 
-    // 1. Tmpfiles.org (официально поддерживает CORS из браузера, без блокировок в РФ)
-    try {
-      const fd = new FormData();
-      fd.append("file", file, file.name || "video.mp4");
-      const res = await fetch("https://tmpfiles.org/api/v1/upload", {
-        method: "POST",
-        body: fd
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json && json.data && json.data.url) {
-          // Преобразуем ссылку просмотра в прямую ссылку для <video>
-          return json.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
-        }
-      }
-      errors.push("tmpfiles: HTTP " + res.status);
-    } catch (e) {
-      errors.push("tmpfiles: " + e.message);
-    }
-
-    // 2. File.io (CORS-совместимый)
-    try {
-      const fd = new FormData();
-      fd.append("file", file, file.name || "video.mp4");
-      const res = await fetch("https://file.io", {
-        method: "POST",
-        body: fd
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json && json.link) return json.link;
-      }
-      errors.push("file.io: HTTP " + res.status);
-    } catch (e) {
-      errors.push("file.io: " + e.message);
-    }
-
-    // 3. Uguu.se (CORS-совместимый прямой хостинг)
+    // 1. Uguu.se (отдаёт прямую ссылку на сам файл .mp4, отлично играет в <video>)
     try {
       const fd = new FormData();
       fd.append("files[]", file, file.name || "video.mp4");
@@ -896,6 +883,44 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
       errors.push("uguu: HTTP " + res.status);
     } catch (e) {
       errors.push("uguu: " + e.message);
+    }
+
+    // 2. Pomf2.lain.la (постоянный прямой файловый хостинг без CORS-блокировок)
+    try {
+      const fd = new FormData();
+      fd.append("files[]", file, file.name || "video.mp4");
+      const res = await fetch("https://pomf2.lain.la/upload.php", {
+        method: "POST",
+        body: fd
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json && json.success && json.files && json.files[0] && json.files[0].url) {
+          return json.files[0].url;
+        }
+      }
+      errors.push("pomf2: HTTP " + res.status);
+    } catch (e) {
+      errors.push("pomf2: " + e.message);
+    }
+
+    // 3. Qu.ax (постоянный прямой файловый хостинг с поддержкой CORS)
+    try {
+      const fd = new FormData();
+      fd.append("files[]", file, file.name || "video.mp4");
+      const res = await fetch("https://qu.ax/upload.php", {
+        method: "POST",
+        body: fd
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json && json.success && json.files && json.files[0] && json.files[0].url) {
+          return json.files[0].url;
+        }
+      }
+      errors.push("qu.ax: HTTP " + res.status);
+    } catch (e) {
+      errors.push("qu.ax: " + e.message);
     }
 
     throw new Error("Не удалось загрузить файл (" + errors.join("; ") + ")");
@@ -972,6 +997,32 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     renderDraftPreviews();
   }
 
+  // Преобразование ссылок YouTube / Google Drive в embed-плеер, если вставлена внешняя ссылка
+  function buildVideoPlayerHtml(url) {
+    if (!url) return "";
+    const safeUrl = esc(url);
+
+    // YouTube
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch) {
+      return `<div class="video-wrap"><iframe class="card-video" style="height:200px;" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allowfullscreen></iframe></div>`;
+    }
+
+    // Google Drive
+    const gdMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (gdMatch) {
+      return `<div class="video-wrap"><iframe class="card-video" style="height:200px;" src="https://drive.google.com/file/d/${gdMatch[1]}/preview" frameborder="0" allowfullscreen></iframe></div>`;
+    }
+
+    // Обычное видео + запасная кнопка открытия в новой вкладке
+    return `
+      <div class="video-wrap">
+        <video class="card-video" src="${safeUrl}" controls playsinline preload="metadata"></video>
+        <a class="video-fallback-link" href="${safeUrl}" target="_blank" rel="noopener noreferrer">▶ Открыть / скачать видео в новой вкладке</a>
+      </div>
+    `;
+  }
+
   function renderDraftPreviews() {
     const cWrap = document.getElementById("coverPreview");
     cWrap.innerHTML = draftCover
@@ -985,7 +1036,7 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
 
     const vWrap = document.getElementById("videoPreview");
     vWrap.innerHTML = draftVideoUrl
-      ? `<div class="preview-video-box"><video src="${esc(draftVideoUrl)}" controls></video><button type="button" class="preview-del" onclick="removeDraftVideo()">×</button></div>`
+      ? `<div class="preview-video-box">${buildVideoPlayerHtml(draftVideoUrl)}<button type="button" class="preview-del" onclick="removeDraftVideo()">×</button></div>`
       : "";
   }
 
@@ -1334,9 +1385,7 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
       const noteImgsHtml = (Array.isArray(f.noteImgs) && f.noteImgs.length)
         ? `<div class="note-thumbs">${f.noteImgs.map(src => `<img class="note-thumb" src="${src}" alt="Фото уточнения" onclick="openLightbox('${src}')">`).join("")}</div>`
         : "";
-      const videoHtml = f.video
-        ? `<video class="card-video" src="${esc(f.video)}" controls preload="metadata"></video>`
-        : "";
+      const videoHtml = buildVideoPlayerHtml(f.video);
 
       return `
         <div class="card ${isBroken ? "broken" : ""}">
