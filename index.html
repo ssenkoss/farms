@@ -115,7 +115,6 @@
   }
   button.danger:hover { background: rgba(239,83,80,0.15); }
 
-  /* Меню три точки */
   .dots-wrap {
     position: relative;
   }
@@ -435,9 +434,6 @@
     overflow-y: auto;
     padding: 20px;
   }
-  .modal.modal-sm {
-    max-width: 390px;
-  }
   .modal h2 { margin: 0 0 14px; font-size: 18px; }
   .form-group { margin-bottom: 12px; }
   .form-group label {
@@ -445,33 +441,6 @@
     font-size: 12px;
     color: var(--muted);
     margin-bottom: 4px;
-  }
-  .pass-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  .pass-wrap input {
-    padding-right: 40px;
-  }
-  .eye-btn {
-    position: absolute;
-    right: 6px;
-    background: transparent;
-    border: none;
-    padding: 4px 6px;
-    font-size: 14px;
-    color: var(--muted);
-  }
-  .eye-btn:hover {
-    background: transparent;
-    color: var(--text);
-  }
-  .auth-error {
-    color: var(--crit);
-    font-size: 12px;
-    margin-top: 6px;
-    min-height: 16px;
   }
   .row-2 {
     display: grid;
@@ -572,6 +541,27 @@
     white-space: pre-wrap;
     word-break: break-word;
   }
+  .pass-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .pass-wrap input {
+    padding-right: 40px;
+  }
+  .eye-btn {
+    position: absolute;
+    right: 6px;
+    background: transparent;
+    border: none;
+    padding: 4px 6px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .eye-btn:hover {
+    background: transparent;
+    color: var(--text);
+  }
 
   /* Lightbox */
   .lightbox {
@@ -600,7 +590,7 @@
 <header>
   <div class="title-wrap">
     <h1>⛏ Реестр ферм клана</h1>
-    <div class="status-line" id="syncStatus">Синхронизация с облаком...</div>
+    <div class="status-line" id="syncStatus">Загрузка...</div>
   </div>
   <div class="header-actions">
     <button class="primary" onclick="openAddModal()">+ Добавить ферму</button>
@@ -648,26 +638,26 @@
   <div class="grid" id="farmsGrid"></div>
 </div>
 
-<!-- Встроенное окно ввода пароля -->
-<div class="modal-backdrop" id="authModal">
-  <div class="modal modal-sm">
-    <h2 id="authTitle">🔒 Проверка доступа</h2>
-    <p class="hint" id="authSubtitle" style="margin-top:0;">Введите пароль для продолжения:</p>
-    <div class="form-group" style="margin-bottom:4px;">
+<!-- Встроенное окно ввода пароля (работает во всех браузерах) -->
+<div class="modal-backdrop" id="authModal" style="z-index: 80;">
+  <div class="modal" style="max-width: 380px;">
+    <h2 id="authTitle">🔒 Введите пароль</h2>
+    <p class="hint" id="authDesc" style="margin-top:0; margin-bottom:10px;"></p>
+    <div class="form-group">
       <div class="pass-wrap">
-        <input type="password" id="authInput" placeholder="Пароль..." onkeydown="if(event.key==='Enter') confirmAuth()">
+        <input type="password" id="authInput" placeholder="Пароль..." onkeydown="if(event.key==='Enter') submitAuth()">
         <button type="button" class="eye-btn" onclick="toggleAuthEye()" title="Показать/скрыть">👁</button>
       </div>
-      <div class="auth-error" id="authError"></div>
+      <div id="authError" style="color:var(--crit); font-size:12px; margin-top:6px; display:none;">Неверный пароль! Проверьте раскладку и регистр.</div>
     </div>
     <div class="modal-actions">
       <button onclick="closeModal('authModal')">Отмена</button>
-      <button class="primary" onclick="confirmAuth()">Подтвердить</button>
+      <button class="primary" onclick="submitAuth()">Подтвердить</button>
     </div>
   </div>
 </div>
 
-<!-- Окно «Для Сони» -->
+<!-- Окно быстрой вставки кодом (Для Сони) -->
 <div class="modal-backdrop" id="sonyaModal">
   <div class="modal">
     <h2>📥 Быстрая вставка фермы кодом (для Сони)</h2>
@@ -685,7 +675,7 @@
   </div>
 </div>
 
-<!-- Окно добавления / редактирования фермы -->
+<!-- Модальное окно добавления / редактирования фермы -->
 <div class="modal-backdrop" id="addModal">
   <div class="modal">
     <h2 id="modalTitle">Добавить ферму</h2>
@@ -773,7 +763,7 @@
   </div>
 </div>
 
-<!-- Окно репорта о поломке -->
+<!-- Модальное окно репорта о поломке -->
 <div class="modal-backdrop" id="reportModal">
   <div class="modal">
     <h2>🚨 Сообщить о поломке фермы</h2>
@@ -793,16 +783,16 @@
   </div>
 </div>
 
-<!-- Окно облака -->
+<!-- Модальное окно облака -->
 <div class="modal-backdrop" id="cloudModal">
   <div class="modal">
     <h2>☁ Подключение общей базы клана (JSONBin.io)</h2>
     <p class="hint" style="margin-top:0;">
-      Настройки подключения к облачной базе клана:
+      Настройки подключения к общей облачной базе данных клана.
     </p>
     <div class="form-group">
       <label>Bin ID</label>
-      <input type="text" id="cBinId" placeholder="Например: 6b04334bac6210605a9df50d">
+      <input type="text" id="cBinId" placeholder="Например: 6741a2b3e41b4d34e4567890">
     </div>
     <div class="form-group">
       <label>X-Master-Key (API ключ)</label>
@@ -824,8 +814,8 @@ const HARDCODED_BIN_ID = "6b04334bac6210605a9df50d";
 const HARDCODED_API_KEY = "$2a$10$8EMgJqyrObzXiPKrfmEv8ugI8z2NfLJ1pbxxofxNNe.G6n83e0Js6";
 
 const PASS_CREATE = "ROME";
-const PASS_MANAGE = "ROMEFARMS";
-const PASS_CLOUD  = "ROMES0fa";
+const PASS_EDIT_FIX = "ROMEFARMS";
+const PASS_CLOUD = "ROMES0fa";
 
   let farms = [];
   let editingFarmId = null;
@@ -833,47 +823,38 @@ const PASS_CLOUD  = "ROMES0fa";
   let draftCover = "";
   let draftNoteImgs = [];
 
-  let pendingAuthPass = "";
-  let pendingAuthCallback = null;
+  let authExpectedPass = "";
+  let authCallback = null;
 
-  // Очищаем устаревший кэш паролей и пустых настроек
-  localStorage.removeItem("clan_pass");
-  if (!localStorage.getItem("clan_bin_id")) localStorage.removeItem("clan_bin_id");
-  if (!localStorage.getItem("clan_api_key")) localStorage.removeItem("clan_api_key");
-
-  // Встроенное окно проверки пароля (не зависит от системных окон Firefox)
-  function requestAuth(requiredPass, title, subtitle, onSuccess) {
-    pendingAuthPass = requiredPass;
-    pendingAuthCallback = onSuccess;
-    document.getElementById("authTitle").textContent = title;
-    document.getElementById("authSubtitle").textContent = subtitle;
+  function requireAuth(expectedPass, descText, onSuccess) {
+    authExpectedPass = expectedPass;
+    authCallback = onSuccess;
+    document.getElementById("authDesc").textContent = descText;
     const inp = document.getElementById("authInput");
     inp.value = "";
     inp.type = "password";
-    document.getElementById("authError").textContent = "";
+    document.getElementById("authError").style.display = "none";
     document.getElementById("authModal").classList.add("open");
     setTimeout(() => inp.focus(), 50);
+  }
+
+  function submitAuth() {
+    const val = document.getElementById("authInput").value.trim();
+    if (val === authExpectedPass) {
+      const cb = authCallback;
+      authCallback = null;
+      document.getElementById("authModal").classList.remove("open");
+      if (cb) cb();
+    } else {
+      document.getElementById("authError").style.display = "block";
+    }
   }
 
   function toggleAuthEye() {
     const inp = document.getElementById("authInput");
     inp.type = inp.type === "password" ? "text" : "password";
-    inp.focus();
   }
 
-  function confirmAuth() {
-    const val = document.getElementById("authInput").value.trim();
-    if (val !== pendingAuthPass) {
-      document.getElementById("authError").textContent = "Неверный пароль! Проверьте раскладку и регистр.";
-      return;
-    }
-    const cb = pendingAuthCallback;
-    pendingAuthCallback = null;
-    document.getElementById("authModal").classList.remove("open");
-    if (typeof cb === "function") cb();
-  }
-
-  // Тема оформления
   function applySavedTheme() {
     if (localStorage.getItem("clan_theme") === "light") {
       document.body.classList.add("light-theme");
@@ -888,7 +869,6 @@ const PASS_CLOUD  = "ROMES0fa";
     closeDotsMenu();
   }
 
-  // Меню 3 точки
   function toggleDotsMenu(e) {
     e.stopPropagation();
     document.getElementById("dotsMenu").classList.toggle("open");
@@ -901,10 +881,9 @@ const PASS_CLOUD  = "ROMES0fa";
     if (wrap && !wrap.contains(e.target)) closeDotsMenu();
   });
 
-  // Окно «Для Сони» (доступ по паролю создания: ROME)
   function openSonyaModal() {
     closeDotsMenu();
-    requestAuth(PASS_CREATE, "📥 Доступ для Сони", "Введите пароль для добавления ферм:", () => {
+    requireAuth(PASS_CREATE, "Для быстрой вставки ферм кодом введите пароль создания:", () => {
       document.getElementById("sonyaCodeInput").value = "";
       document.getElementById("sonyaModal").classList.add("open");
     });
@@ -1118,7 +1097,7 @@ const PASS_CLOUD  = "ROMES0fa";
     if (!cfg.binId || !cfg.apiKey) {
       const saved = localStorage.getItem("clan_farms_local");
       farms = saved ? JSON.parse(saved) : [];
-      updateStatus("Режим: Локальное хранение (нажмите ⋮ → «Облако»)");
+      updateStatus("Режим: Локальное хранение (нажмите ⋮ → Облако)");
       render();
       return;
     }
@@ -1186,9 +1165,8 @@ const PASS_CLOUD  = "ROMES0fa";
     renderDraftPreviews();
   }
 
-  // Создание новой фермы (пароль: ROME)
   function openAddModal() {
-    requestAuth(PASS_CREATE, "➕ Добавление фермы", "Введите пароль для создания новой фермы:", () => {
+    requireAuth(PASS_CREATE, "Для создания новой фермы введите пароль:", () => {
       editingFarmId = null;
       document.getElementById("modalTitle").textContent = "Добавить ферму";
       document.getElementById("saveBtn").textContent = "Сохранить";
@@ -1197,12 +1175,11 @@ const PASS_CLOUD  = "ROMES0fa";
     });
   }
 
-  // Редактирование фермы (пароль: ROMEFARMS)
   function openEditModal(id) {
-    const farm = farms.find(f => f.id === id);
-    if (!farm) return;
+    requireAuth(PASS_EDIT_FIX, "Для редактирования фермы введите пароль администратора:", () => {
+      const farm = farms.find(f => f.id === id);
+      if (!farm) return;
 
-    requestAuth(PASS_MANAGE, "✏️ Редактирование фермы", "Введите пароль для изменения фермы:", () => {
       editingFarmId = id;
       document.getElementById("modalTitle").textContent = "Редактировать ферму";
       document.getElementById("saveBtn").textContent = "Сохранить изменения";
@@ -1229,10 +1206,9 @@ const PASS_CLOUD  = "ROMES0fa";
     });
   }
 
-  // Вход в облако (пароль: ROMES0fa)
   function openCloudModal() {
     closeDotsMenu();
-    requestAuth(PASS_CLOUD, "☁ Доступ к облаку", "Введите пароль администратора облака:", () => {
+    requireAuth(PASS_CLOUD, "Для доступа к настройкам облачной базы введите пароль:", () => {
       const cfg = getConfig();
       document.getElementById("cBinId").value = cfg.binId;
       document.getElementById("cApiKey").value = cfg.apiKey;
@@ -1243,7 +1219,7 @@ const PASS_CLOUD  = "ROMES0fa";
   function closeModal(id) {
     if (id === "addModal") editingFarmId = null;
     if (id === "reportModal") reportingFarmId = null;
-    if (id === "authModal") pendingAuthCallback = null;
+    if (id === "authModal") authCallback = null;
     document.getElementById(id).classList.remove("open");
   }
 
@@ -1335,9 +1311,8 @@ const PASS_CLOUD  = "ROMES0fa";
     await pushFarms();
   }
 
-  // Снятие репорта (пароль: ROMEFARMS)
   function clearReports(id) {
-    requestAuth(PASS_MANAGE, "✓ Подтверждение ремонта", "Введите пароль для снятия метки поломки:", async () => {
+    requireAuth(PASS_EDIT_FIX, "Чтобы снять метку поломки и удалить репорты, введите пароль:", async () => {
       const idx = farms.findIndex(f => f.id === id);
       if (idx === -1) return;
       farms[idx].reports = [];
@@ -1345,9 +1320,9 @@ const PASS_CLOUD  = "ROMES0fa";
     });
   }
 
-  // Удаление фермы (пароль: ROMEFARMS)
   function deleteFarm(id) {
-    requestAuth(PASS_MANAGE, "🗑 Удаление фермы", "Введите пароль для удаления фермы из списка:", async () => {
+    requireAuth(PASS_EDIT_FIX, "Для удаления фермы из списка введите пароль:", async () => {
+      if (!confirm("Удалить эту ферму из списка клана?")) return;
       farms = farms.filter(f => f.id !== id);
       await pushFarms();
     });
