@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>Ф
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Фермы клана — Minecraft</title>
@@ -18,7 +18,7 @@
     --med: #e65100; --low: #1565c0; --hover-btn: #dce4dc; --hover-border: #9eb09e;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.45; transition: background .2s, color .2s; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.45; transition: .2s; }
   header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
   .title-wrap h1 { margin: 0; font-size: 20px; display: flex; align-items: center; gap: 8px; }
   .status-line { font-size: 12px; color: var(--muted); margin-top: 2px; }
@@ -300,9 +300,9 @@
 <script>
   const DEF_BIN = "6b04334bac6210605a9df50d";
   const DEF_KEY = "$2a$10$8EMgJqyrObzXiPKrfmEv8ugI8z2NfLJ1pbxxofxNNe.G6n83e0Js6";
-  const PASS_CLOUD = "ROMES0fa";
-  const PASS_CREATE = "ROME";
-  const PASS_ADMIN = "ROMEFARMS";
+  const PASS_CLOUD = "ROMES0fa";   // Вход в настройки облака
+  const PASS_CREATE = "ROME";      // Создание ферм (+ Добавить / Для Сони)
+  const PASS_ADMIN = "ROMEFARMS";  // Редактирование, удаление ферм и репортов
 
   const FARM_TYPES = [
     "Опыт / Мобы", "Железо / Металлы", "Золото / Пиглины", "Еда / Растения",
@@ -381,7 +381,7 @@
     const z = $(id);
     ["dragenter", "dragover"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add("dragover"); }));
     ["dragleave", "drop"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove("dragover"); }));
-    z.addEventListener("drop", e => e.dataTransfer && e.dataTransfer.files.length && fn(e.dataTransfer.files));
+    z.addEventListener("drop", e => e.dataTransfer?.files.length && fn(e.dataTransfer.files));
   }
   bindDrop("coverDropZone", f => setCover(f[0]));
   bindDrop("noteImgsDropZone", f => addNoteImgs(f));
@@ -496,7 +496,7 @@
       rate, prio: $("fPrio").value, note: $("fNote").value.trim(),
       author: $("fAuthor").value.trim() || "Не указан",
       cover: draftCover, noteImgs: [...draftImgs],
-      reports: Array.isArray(old && old.reports) ? old.reports : []
+      reports: Array.isArray(old?.reports) ? old.reports : []
     };
     if (editId !== null) {
       const idx = farms.findIndex(x => String(x.id) === String(editId));
@@ -567,15 +567,16 @@
   }
 
   function clearReports(id) {
-    askPass(PASS_ADMIN, "🛠 Снятие репорта", "Введите пароль администратора:", async () => {
+    askPass(PASS_ADMIN, "🛠 Снятие репорта", "Введите пароль администратора (ROMEFARMS):", async () => {
       const idx = farms.findIndex(x => String(x.id) === String(id));
       if (idx !== -1) { farms[idx].reports = []; await syncCloud("PUT"); }
     });
   }
 
   function deleteFarm(id) {
-    askPass(PASS_ADMIN, "🗑 Удаление фермы", "Введите пароль администратора для удаления:", async () => {
-      if (!confirm("Точно удалить эту ферму из списка клана?")) return;
+    const target = farms.find(x => String(x.id) === String(id));
+    if (!target) return;
+    askPass(PASS_ADMIN, "🗑 Удаление фермы", `Введите пароль для удаления «${target.name}»:`, async () => {
       farms = farms.filter(x => String(x.id) !== String(id));
       await syncCloud("PUT");
     });
@@ -608,7 +609,7 @@
   function render() {
     const q = $("searchInput").value.toLowerCase(), tf = $("typeFilter").value, pf = $("prioFilter").value;
     $("statTotal").textContent = farms.length;
-    $("statBroken").textContent = farms.filter(f => Array.isArray(f.reports) && f.reports.length > 0).length;
+    $("statBroken").textContent = farms.filter(f => f.reports?.length > 0).length;
     $("statCrit").textContent = farms.filter(f => f.prio === "crit").length;
 
     const prioMap = {
@@ -618,7 +619,7 @@
     };
 
     const list = farms.filter(f => {
-      const broken = Array.isArray(f.reports) && f.reports.length > 0;
+      const broken = f.reports?.length > 0;
       if (tf && f.type !== tf) return false;
       if (pf === "broken" && !broken) return false;
       if (pf && pf !== "broken" && f.prio !== pf) return false;
@@ -629,7 +630,7 @@
       ? `<div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму», чтобы создать первую запись.</div>`
       : list.map(f => {
           const [pText, pCls] = prioMap[f.prio] || prioMap.low;
-          const coords = `${f.x} ${f.y} ${f.z}`, reps = Array.isArray(f.reports) ? f.reports : [], broken = reps.length > 0;
+          const coords = `${f.x} ${f.y} ${f.z}`, reps = f.reports || [], broken = reps.length > 0;
           return `
             <div class="card ${broken ? "broken" : ""}">
               ${broken ? `<div class="broken-banner">
@@ -646,7 +647,7 @@
                 <div class="info-row"><span>🌍 ${esc(f.dim)}: <b class="coords">${esc(coords)}</b></span><button type="button" class="copy-btn" onclick="copyCoords('${esc(coords)}', this)">Копировать</button></div>
                 <div class="info-row"><span>⚡ Ресы/ч:</span><b>${esc(f.rate)}</b></div>
                 ${f.note ? `<div class="note">${esc(f.note)}</div>` : ""}
-                ${Array.isArray(f.noteImgs) && f.noteImgs.length ? `<div class="note-thumbs">${f.noteImgs.map(s => `<img class="note-thumb" src="${s}" onclick="openLightbox('${s}')">`).join("")}</div>` : ""}
+                ${f.noteImgs?.length ? `<div class="note-thumbs">${f.noteImgs.map(s => `<img class="note-thumb" src="${s}" onclick="openLightbox('${s}')">`).join("")}</div>` : ""}
               </div>
               <div class="card-foot">
                 <span>Построил: <b>${esc(f.author)}</b></span>
