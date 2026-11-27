@@ -151,18 +151,7 @@
 
   <div class="filters">
     <input type="text" id="searchInput" placeholder="Поиск по названию, координатам, автору или примечанию..." oninput="render()">
-    <select id="typeFilter" onchange="render()">
-      <option value="">Все виды ферм</option>
-      <option>Опыт / Мобы</option>
-      <option>Железо / Металлы</option>
-      <option>Золото / Пиглины</option>
-      <option>Еда / Растения</option>
-      <option>Порох / Криперы</option>
-      <option>Жители / Торговля</option>
-      <option>Редстоун / Слизь</option>
-      <option>Энд / Шалкеры</option>
-      <option>Другое</option>
-    </select>
+    <select id="typeFilter" onchange="render()"></select>
     <select id="prioFilter" onchange="render()">
       <option value="">Любой статус / риск</option>
       <option value="broken">❗ Сломаны (есть репорт)</option>
@@ -213,20 +202,7 @@
   <div class="modal">
     <h2 id="modalTitle">Добавить ферму</h2>
     <div class="row-2">
-      <div class="form-group">
-        <label>Вид фермы</label>
-        <select id="fType">
-          <option>Опыт / Мобы</option>
-          <option>Железо / Металлы</option>
-          <option>Золото / Пиглины</option>
-          <option>Еда / Растения</option>
-          <option>Порох / Криперы</option>
-          <option>Жители / Торговля</option>
-          <option>Редстоун / Слизь</option>
-          <option>Энд / Шалкеры</option>
-          <option>Другое</option>
-        </select>
-      </div>
+      <div class="form-group"><label>Вид фермы</label><select id="fType"></select></div>
       <div class="form-group"><label>Название фермы *</label><input type="text" id="fName" placeholder="Например: Ферма железа"></div>
     </div>
 
@@ -234,8 +210,8 @@
       <label>Обложка фермы (необязательно)</label>
       <label class="file-box" id="coverDropZone" for="fCoverInput">
         <input type="file" id="fCoverInput" accept="image/*" onchange="handleCover(event)">
-        <div><b>📷 Перетащите скриншот сюда или нажмите для выбора</b></div>
-        <div class="hint">Картинка автоматически сожмётся.</div>
+        <div><b>📷 Нажмите или перетащите скриншот сюда</b></div>
+        <div class="hint">Скриншот автоматически сожмётся перед загрузкой.</div>
         <div class="preview-strip" id="coverPreview" onclick="event.preventDefault(); event.stopPropagation();"></div>
       </label>
     </div>
@@ -270,7 +246,7 @@
     </div>
 
     <div class="form-group">
-      <label>Уточнения (как не сломать, где рычаг, куда вставать АФК)</label>
+      <label>Уточнения (примечание: как не сломать, где рычаг, куда вставать АФК)</label>
       <textarea id="fNote" rows="3" placeholder="Например: Не выходить из игры в радиусе 30 блоков!"></textarea>
     </div>
 
@@ -278,7 +254,7 @@
       <label>Фото к уточнениям (до 4 скриншотов)</label>
       <label class="file-box" id="noteImgsDropZone" for="fNoteImgsInput">
         <input type="file" id="fNoteImgsInput" accept="image/*" multiple onchange="handleNoteImgs(event)">
-        <div><b>🖼 Перетащите до 4 фото сюда или нажмите для выбора</b></div>
+        <div><b>🖼 Нажмите или перетащите до 4 фото сюда</b></div>
         <div class="preview-strip" id="noteImgsPreview" onclick="event.preventDefault(); event.stopPropagation();"></div>
       </label>
     </div>
@@ -305,19 +281,19 @@
 
 <div class="modal-backdrop" id="cloudModal">
   <div class="modal">
-    <h2>☁ Подключение базы клана (GitHub)</h2>
-    <p class="hint" style="margin-top:0;">База хранится в файле <b>farms.json</b> внутри вашего репозитория GitHub (без лимита 100 КБ):</p>
+    <h2>☁ База клана в GitHub (farms.json)</h2>
+    <p class="hint" style="margin-top:0;">Защита от перезаписи активна: сохранение невозможно, если база не загрузилась.</p>
     <div class="row-2">
-      <div class="form-group"><label>Владелец GitHub</label><input type="text" id="cOwner" placeholder="ssenkoss"></div>
-      <div class="form-group"><label>Репозиторий</label><input type="text" id="cRepo" placeholder="farms"></div>
+      <div class="form-group"><label>Владелец GitHub</label><input type="text" id="cOwner" value="ssenkoss"></div>
+      <div class="form-group"><label>Репозиторий</label><input type="text" id="cRepo" value="farms"></div>
     </div>
     <div class="form-group"><label>GitHub Token (Fine-grained, Contents: Read and write)</label><input type="password" id="cToken" placeholder="github_pat_..."></div>
     <div class="form-group"><label>Пароль на создание ферм</label><input type="text" id="cPass" placeholder="ROME"></div>
     <div class="modal-actions" style="justify-content: space-between;">
-      <button type="button" onclick="importFromOldJsonBin()">⇄ Импорт из старого JSONBin</button>
+      <button type="button" onclick="importFromOldJsonBin()">⇄ Импорт из JSONBin</button>
       <div style="display:flex; gap:8px;">
         <button type="button" onclick="closeModal('cloudModal')">Закрыть</button>
-        <button type="button" class="primary" onclick="saveCloudConfig()">Сохранить и загрузить</button>
+        <button type="button" class="primary" onclick="saveCloudConfig()">Сохранить</button>
       </div>
     </div>
   </div>
@@ -329,31 +305,42 @@
 
 <script>
   const DEF_OWNER = "ssenkoss";
-  const DEF_REPO = "farms";
-  const DEF_FILE = "farms.json";
+  const DEF_REPO  = "farms";
+  const DB_FILE   = "farms.json";
+
   const GH_T1 = "github_pat_11CV4OQ7A08RS5Lg7AIG9M_";
   const GH_T2 = "YIyoyU0GCnEVrpUQ77vBYn8bz79ErWmcHFEmWfiu2biU3UCHHBRra1FsRnE";
 
-  const OLD_BIN = "6b04334bac6210605a9df50d";
-  const OLD_KEY = "$2a$10$8EMgJqyrObzXiPKrfmEv8ugI8z2NfLJ1pbxxofxNNe.G6n83e0Js6";
+  const OLD_BIN_ID  = "6b04334bac6210605a9df50d";
+  const OLD_API_KEY = "$2a$10$8EMgJqyrObzXiPKrfmEv8ugI8z2NfLJ1pbxxofxNNe.G6n83e0Js6";
 
-  const PASS_CLOUD = "ROMES0fa";
+  const PASS_CLOUD  = "ROMES0fa";
   const PASS_CREATE = "ROME";
-  const PASS_ADMIN = "ROMEFARMS";
+  const PASS_ADMIN  = "ROMEFARMS";
+
+  const FARM_TYPES = [
+    "Опыт / Мобы", "Железо / Металлы", "Золото / Пиглины", "Еда / Растения",
+    "Порох / Криперы", "Жители / Торговля", "Редстоун / Слизь", "Энд / Шалкеры", "Другое"
+  ];
 
   const $ = id => document.getElementById(id);
-  let farms = [], editId = null, reportId = null, draftCover = "", draftImgs = [], authCb = null, authExp = "", fileSha = null;
+  let farms = [], editId = null, reportId = null, draftCover = "", draftImgs = [], authCb = null, authExp = "";
+  let fileSha = null;
+  let dbLoaded = false;
 
   if (localStorage.getItem("clan_pass") && localStorage.getItem("clan_pass") !== PASS_CREATE) {
     localStorage.removeItem("clan_pass");
   }
   if (localStorage.getItem("clan_theme") === "light") document.body.classList.add("light-theme");
 
+  $("typeFilter").innerHTML = `<option value="">Все виды ферм</option>` + FARM_TYPES.map(t => `<option>${t}</option>`).join("");
+  $("fType").innerHTML = FARM_TYPES.map(t => `<option>${t}</option>`).join("");
+
   function getCfg() {
     return {
-      owner: localStorage.getItem("clan_gh_owner") || DEF_OWNER,
-      repo: localStorage.getItem("clan_gh_repo") || DEF_REPO,
-      token: localStorage.getItem("clan_gh_token") || (GH_T1 + GH_T2),
+      owner: localStorage.getItem("gh_owner") || DEF_OWNER,
+      repo: localStorage.getItem("gh_repo") || DEF_REPO,
+      token: localStorage.getItem("gh_token") || (GH_T1 + GH_T2),
       createPass: localStorage.getItem("clan_pass") || PASS_CREATE
     };
   }
@@ -440,7 +427,7 @@
 
   async function setCover(file) {
     if (!file || !file.type.startsWith("image/")) return;
-    draftCover = await compress(file, 900, 0.78);
+    draftCover = await compress(file, 750, 0.70);
     renderPreviews();
   }
   function handleCover(e) {
@@ -450,7 +437,7 @@
 
   async function addNoteImgs(list) {
     const files = Array.from(list).filter(f => f.type.startsWith("image/")).slice(0, 4 - draftImgs.length);
-    for (const f of files) draftImgs.push(await compress(f, 800, 0.75));
+    for (const f of files) draftImgs.push(await compress(f, 700, 0.65));
     renderPreviews();
   }
   function handleNoteImgs(e) {
@@ -475,128 +462,145 @@
     ).join("");
   }
 
-  function utf8ToBase64(str) {
+  function utf8ToB64(str) {
     const bytes = new TextEncoder().encode(str);
     let bin = "";
     for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
     return btoa(bin);
   }
-
-  function base64ToUtf8(b64) {
+  function b64ToUtf8(b64) {
     const bin = atob(b64.replace(/\s/g, ""));
     const bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return new TextDecoder().decode(bytes);
   }
 
-  async function syncCloud(method = "GET") {
+  async function loadFarms() {
     const { owner, repo, token } = getCfg();
-    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${DEF_FILE}`;
+    dbLoaded = false;
+    try {
+      setStatus("Загрузка базы с GitHub...");
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${DB_FILE}?t=${Date.now()}`;
+      const headers = { "Accept": "application/vnd.github.v3+json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    if (method === "GET") {
-      try {
-        setStatus("Загрузка базы клана из GitHub...");
-        let res = await fetch(`${apiUrl}?t=${Date.now()}`, {
-          headers: token ? { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json" } : { "Accept": "application/vnd.github+json" }
-        });
-
-        if (res.status === 401 && token) {
-          res = await fetch(`${apiUrl}?t=${Date.now()}`, { headers: { "Accept": "application/vnd.github+json" } });
-        }
-
-        if (res.status === 404) {
-          fileSha = null;
-          farms = [];
-          setStatus("База farms.json ещё не создана (добавьте ферму или нажмите ⋮ → Импорт из JSONBin)");
-          return render();
-        }
-        if (!res.ok) throw new Error(`Код ответа ${res.status}`);
-
-        const data = await res.json();
-        fileSha = data.sha;
-        const decoded = base64ToUtf8(data.content || "");
-        const parsed = decoded ? JSON.parse(decoded) : [];
-        farms = Array.isArray(parsed) ? parsed : [];
-        setStatus("Режим: Общая база GitHub подключена ✓");
-        render();
-      } catch (e) {
-        setStatus("Ошибка загрузки GitHub: " + e.message, true);
-        render();
+      let res = await fetch(apiUrl, { headers, cache: "no-store" });
+      if (res.status === 401 && token) {
+        res = await fetch(apiUrl, { headers: { "Accept": "application/vnd.github.v3+json" }, cache: "no-store" });
       }
+
+      if (res.status === 404) {
+        farms = [];
+        fileSha = null;
+        dbLoaded = true;
+        setStatus("База farms.json ещё не создана (будет создана при добавлении фермы)");
+        render();
+        return;
+      }
+      if (!res.ok) throw new Error(`Код ответа ${res.status}`);
+
+      const data = await res.json();
+      fileSha = data.sha;
+
+      let parsed = [];
+      if (data.content && data.content.trim()) {
+        parsed = JSON.parse(b64ToUtf8(data.content));
+      } else if (data.download_url) {
+        const rawRes = await fetch(`${data.download_url}?t=${Date.now()}`, { cache: "no-store" });
+        if (!rawRes.ok) throw new Error(`Ошибка загрузки большого файла (${rawRes.status})`);
+        parsed = await rawRes.json();
+      }
+
+      if (!Array.isArray(parsed)) throw new Error("Некорректный формат farms.json");
+      farms = parsed;
+      dbLoaded = true;
+      localStorage.setItem("clan_farms_backup", JSON.stringify(farms));
+      setStatus(`База клана подключена ✓ (ферм: ${farms.length})`);
+      render();
+    } catch (e) {
+      dbLoaded = false;
+      setStatus("ОШИБКА ЗАГРУЗКИ (сохранение заблокировано для защиты данных): " + e.message, true);
+      render();
+    }
+  }
+
+  async function pushFarms() {
+    const { owner, repo, token } = getCfg();
+    if (!dbLoaded) {
+      alert("Сохранение заблокировано! База ещё не загрузилась с GitHub (защита от случайного затирания ферм). Обновите страницу!");
       return;
     }
-
     if (!token) {
-      setStatus("Не указан GitHub Token для сохранения!", true);
-      alert("Для сохранения изменений введите GitHub Token в меню: ⋮ → Облако / GitHub");
+      alert("Не указан GitHub Token! Откройте ⋮ → Облако / GitHub (пароль ROMES0fa).");
       return;
     }
 
     try {
       setStatus("Сохранение в GitHub...");
-      const checkRes = await fetch(`${apiUrl}?t=${Date.now()}`, {
-        headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json" }
-      });
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${DB_FILE}`;
+      const headers = {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
+      };
+
+      const checkRes = await fetch(`${apiUrl}?t=${Date.now()}`, { headers, cache: "no-store" });
       if (checkRes.ok) {
         const checkData = await checkRes.json();
         fileSha = checkData.sha;
-      } else if (checkRes.status === 404) {
-        fileSha = null;
-      } else if (checkRes.status === 401) {
-        throw new Error("401 (Токен устарел или заблокирован GitHub — создайте новый в ⋮ → Облако / GitHub)");
+      } else if (checkRes.status !== 404) {
+        throw new Error(`Ошибка проверки версии (${checkRes.status})`);
       }
 
-      const bodyObj = {
-        message: "Update farms.json",
-        content: utf8ToBase64(JSON.stringify(farms, null, 2))
+      const body = {
+        message: `Update farms (${farms.length})`,
+        content: utf8ToB64(JSON.stringify(farms, null, 2))
       };
-      if (fileSha) bodyObj.sha = fileSha;
+      if (fileSha) body.sha = fileSha;
 
-      const putRes = await fetch(apiUrl, {
+      const res = await fetch(apiUrl, {
         method: "PUT",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/vnd.github+json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(bodyObj)
+        headers,
+        body: JSON.stringify(body)
       });
 
-      if (!putRes.ok) {
-        const errJson = await putRes.json().catch(() => ({}));
-        throw new Error(`${putRes.status} ${errJson.message || ""}`);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(`${res.status}: ${errData.message || "нет доступа"}`);
       }
 
-      const putData = await putRes.json();
-      fileSha = putData.content?.sha || fileSha;
-      setStatus("Сохранено в общую базу GitHub ✓");
+      const out = await res.json();
+      fileSha = out.content.sha;
+      localStorage.setItem("clan_farms_backup", JSON.stringify(farms));
+      setStatus(`Сохранено в базу клана ✓ (ферм: ${farms.length})`);
       render();
     } catch (e) {
-      setStatus("Ошибка сохранения GitHub: " + e.message, true);
-      alert("Ошибка сохранения в GitHub: " + e.message);
+      setStatus("Ошибка сохранения: " + e.message, true);
+      alert("Не удалось сохранить изменения: " + e.message);
     }
   }
 
   async function importFromOldJsonBin() {
+    if (!dbLoaded) return alert("Сначала дождитесь загрузки текущей базы (или обновите страницу)!");
+    if (!confirm("Загрузить фермы из старого JSONBin и записать их в GitHub?")) return;
     try {
-      setStatus("Загрузка данных из старого JSONBin...");
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${OLD_BIN}/latest`, {
-        headers: { "X-Master-Key": OLD_KEY }
+      setStatus("Загрузка из старого JSONBin...");
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${OLD_BIN_ID}/latest`, {
+        headers: { "X-Master-Key": OLD_API_KEY }
       });
-      if (!res.ok) throw new Error(`Ошибка JSONBin: ${res.status}`);
+      if (!res.ok) throw new Error(`JSONBin вернул ${res.status}`);
       const data = await res.json();
-      const oldFarms = Array.isArray(data.record) ? data.record : [];
-      if (!oldFarms.length) return alert("В старом JSONBin не найдено ферм.");
-      farms = oldFarms;
+      if (!Array.isArray(data.record) || !data.record.length) return alert("В старом JSONBin пусто.");
+      farms = data.record;
       closeModal("cloudModal");
-      await syncCloud("PUT");
-      alert(`Перенесено ферм из JSONBin: ${oldFarms.length}`);
+      await pushFarms();
     } catch (e) {
-      alert("Не удалось перенести из JSONBin: " + e.message);
+      alert("Ошибка импорта: " + e.message);
     }
   }
 
   function openAddModal() {
+    if (!dbLoaded) return alert("Подождите, база ферм ещё загружается с сервера!");
     askPass(getCfg().createPass, "➕ Создание фермы", "Введите пароль для добавления фермы:", () => {
       editId = null;
       $("modalTitle").textContent = "Добавить ферму";
@@ -609,13 +613,14 @@
   }
 
   function openEditModal(id) {
+    if (!dbLoaded) return alert("Подождите, база ферм ещё загружается!");
     askPass(PASS_ADMIN, "✏️ Редактирование фермы", "Введите пароль администратора:", () => {
       const f = farms.find(x => String(x.id) === String(id));
       if (!f) return;
       editId = f.id;
       $("modalTitle").textContent = "Редактировать ферму";
       $("saveBtn").textContent = "Сохранить изменения";
-      $("fType").value = f.type || "Опыт / Мобы";
+      $("fType").value = f.type || FARM_TYPES[0];
       $("fName").value = f.name || "";
       $("fDim").value = f.dim || "Верхний мир";
       $("fAuthor").value = f.author === "Не указан" ? "" : (f.author || "");
@@ -630,6 +635,7 @@
   }
 
   async function saveFarm() {
+    if (!dbLoaded) return alert("Ошибка: база не загружена, сохранение отменено.");
     const name = $("fName").value.trim(), rate = $("fRate").value.trim();
     if (!name || !rate) return alert("Заполните название фермы и ресы/ч!");
     const old = editId !== null ? farms.find(x => String(x.id) === String(editId)) : null;
@@ -649,11 +655,12 @@
       farms.unshift(item);
     }
     closeModal("addModal");
-    await syncCloud("PUT");
+    await pushFarms();
   }
 
   function openSonyaModal() {
     $("dotsMenu").classList.remove("open");
+    if (!dbLoaded) return alert("Подождите, база ферм ещё загружается!");
     askPass(getCfg().createPass, "📥 Доступ для Сони", "Введите пароль для добавления ферм:", () => {
       $("sonyaCodeInput").value = "";
       openModal("sonyaModal");
@@ -661,6 +668,7 @@
   }
 
   async function importSonyaCode() {
+    if (!dbLoaded) return alert("База ещё не загружена!");
     const lines = $("sonyaCodeInput").value.trim().split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     if (!lines.length) return alert("Вставьте хотя бы одну строку с кодом фермы!");
     let count = 0;
@@ -685,10 +693,11 @@
     });
     if (!count) return alert("Не удалось распознать код. Используйте разделитель @");
     closeModal("sonyaModal");
-    await syncCloud("PUT");
+    await pushFarms();
   }
 
   function openReportModal(id) {
+    if (!dbLoaded) return alert("Подождите, база ферм ещё загружается!");
     const f = farms.find(x => String(x.id) === String(id));
     if (!f) return;
     reportId = f.id;
@@ -698,6 +707,7 @@
   }
 
   async function submitReport() {
+    if (!dbLoaded) return alert("База ещё не загружена!");
     const text = $("rText").value.trim();
     if (!text) return alert("Опишите, что именно сломалось!");
     const idx = farms.findIndex(x => String(x.id) === String(reportId));
@@ -707,46 +717,45 @@
     const date = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) + " " + now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
     farms[idx].reports.push({ author: $("rAuthor").value.trim() || "Игрок", text, date });
     closeModal("reportModal");
-    await syncCloud("PUT");
+    await pushFarms();
   }
 
   function clearReports(id) {
+    if (!dbLoaded) return alert("База ещё не загружена!");
     askPass(PASS_ADMIN, "🛠 Снятие репорта", "Введите пароль администратора (ROMEFARMS):", async () => {
       const idx = farms.findIndex(x => String(x.id) === String(id));
-      if (idx !== -1) { farms[idx].reports = []; await syncCloud("PUT"); }
+      if (idx !== -1) { farms[idx].reports = []; await pushFarms(); }
     });
   }
 
   function deleteFarm(id) {
+    if (!dbLoaded) return alert("База ещё не загружена!");
     const target = farms.find(x => String(x.id) === String(id));
     if (!target) return;
     askPass(PASS_ADMIN, "🗑 Удаление фермы", `Введите пароль для удаления «${target.name}»:`, async () => {
       farms = farms.filter(x => String(x.id) !== String(id));
-      await syncCloud("PUT");
+      await pushFarms();
     });
   }
 
   function openCloudModal() {
     $("dotsMenu").classList.remove("open");
-    askPass(PASS_CLOUD, "☁ Вход в настройки GitHub", "Введите пароль доступа к настройкам:", () => {
+    askPass(PASS_CLOUD, "☁ Вход в настройки GitHub", "Введите пароль доступа:", () => {
       const cfg = getCfg();
       $("cOwner").value = cfg.owner;
       $("cRepo").value = cfg.repo;
-      $("cToken").value = localStorage.getItem("clan_gh_token") || "";
+      $("cToken").value = cfg.token;
       $("cPass").value = cfg.createPass;
       openModal("cloudModal");
     });
   }
-
   function saveCloudConfig() {
-    localStorage.setItem("clan_gh_owner", $("cOwner").value.trim() || DEF_OWNER);
-    localStorage.setItem("clan_gh_repo", $("cRepo").value.trim() || DEF_REPO);
-    const tok = $("cToken").value.trim();
-    if (tok) localStorage.setItem("clan_gh_token", tok);
-    else localStorage.removeItem("clan_gh_token");
-    localStorage.setItem("clan_pass", $("cPass").value.trim());
+    localStorage.setItem("gh_owner", $("cOwner").value.trim() || DEF_OWNER);
+    localStorage.setItem("gh_repo", $("cRepo").value.trim() || DEF_REPO);
+    localStorage.setItem("gh_token", $("cToken").value.trim());
+    localStorage.setItem("clan_pass", $("cPass").value.trim() || PASS_CREATE);
     closeModal("cloudModal");
-    syncCloud("GET");
+    loadFarms();
   }
 
   const esc = s => String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
@@ -778,7 +787,7 @@
     });
 
     $("farmsGrid").innerHTML = !list.length
-      ? `<div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму» или перенесите базу через «⋮ → Облако / GitHub → Импорт из старого JSONBin».</div>`
+      ? `<div class="empty">${dbLoaded ? "Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму», чтобы создать первую запись." : "Ожидание загрузки базы с GitHub..."}</div>`
       : list.map(f => {
           const [pText, pCls] = prioMap[f.prio] || prioMap.low;
           const coords = `${f.x} ${f.y} ${f.z}`, reps = f.reports || [], broken = reps.length > 0;
@@ -812,7 +821,7 @@
         }).join("");
   }
 
-  syncCloud("GET");
+  loadFarms();
 </script>
 </body>
 </html>
