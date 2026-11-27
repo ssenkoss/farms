@@ -108,7 +108,7 @@
 
   .file-box { display: block; background: var(--panel-2); border: 1px dashed #4a5a4a; border-radius: 6px; padding: 12px; font-size: 12px; transition: .15s; cursor: pointer; }
   .file-box.dragover { border-color: var(--green); background: rgba(76,175,80,.12); }
-  .file-box input { display: none; }
+  .file-box input[type="file"] { display: none; }
   .preview-strip { margin-top: 8px; }
   .preview-item { position: relative; width: 82px; height: 60px; }
   .preview-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 5px; border: 1px solid var(--border); background: #000; }
@@ -246,7 +246,7 @@
     </div>
 
     <div class="form-group">
-      <label>Уточнения (примечание: как не сломать, где рычаг, куда вставать АФК)</label>
+      <label>Уточнения (как не сломать, где рычаг, куда вставать АФК)</label>
       <textarea id="fNote" rows="3" placeholder="Например: Не выходить из игры в радиусе 30 блоков!"></textarea>
     </div>
 
@@ -300,9 +300,9 @@
 <script>
   const DEF_BIN = "6b04334bac6210605a9df50d";
   const DEF_KEY = "$2a$10$8EMgJqyrObzXiPKrfmEv8ugI8z2NfLJ1pbxxofxNNe.G6n83e0Js6";
-  const PASS_CLOUD = "ROMES0fa";   // Вход в настройки облака
-  const PASS_CREATE = "ROME";      // Создание ферм (+ Добавить / Для Сони)
-  const PASS_ADMIN = "ROMEFARMS";  // Редактирование, удаление ферм и репортов
+  const PASS_CLOUD = "ROMES0fa";
+  const PASS_CREATE = "ROME";
+  const PASS_ADMIN = "ROMEFARMS";
 
   const FARM_TYPES = [
     "Опыт / Мобы", "Железо / Металлы", "Золото / Пиглины", "Еда / Растения",
@@ -410,50 +410,38 @@
 
   async function setCover(file) {
     if (!file || !file.type.startsWith("image/")) return;
-    draftCover = await compress(file, 850, 0.72);
+    draftCover = await compress(file, 700, 0.65);
     renderPreviews();
   }
   function handleCover(e) {
-    if (e.target.files && e.target.files[0]) {
-      setCover(e.target.files[0]);
-      e.target.value = "";
-    }
+    if (e.target.files && e.target.files[0]) setCover(e.target.files[0]);
+    e.target.value = "";
   }
 
   async function addNoteImgs(list) {
     const files = Array.from(list).filter(f => f.type.startsWith("image/")).slice(0, 4 - draftImgs.length);
-    for (const f of files) {
-      draftImgs.push(await compress(f, 750, 0.68));
-    }
+    for (const f of files) draftImgs.push(await compress(f, 650, 0.62));
     renderPreviews();
   }
   function handleNoteImgs(e) {
-    if (e.target.files && e.target.files.length) {
-      addNoteImgs(e.target.files);
-      e.target.value = "";
-    }
+    if (e.target.files && e.target.files.length) addNoteImgs(e.target.files);
+    e.target.value = "";
   }
 
-  function removeDraftCover(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    draftCover = "";
-    $("fCoverInput").value = "";
-    renderPreviews();
+  function removeCover(e) {
+    e.preventDefault(); e.stopPropagation();
+    draftCover = ""; $("fCoverInput").value = ""; renderPreviews();
   }
-
-  function removeDraftImg(e, i) {
-    e.preventDefault();
-    e.stopPropagation();
-    draftImgs.splice(i, 1);
-    renderPreviews();
+  function removeNoteImg(e, idx) {
+    e.preventDefault(); e.stopPropagation();
+    draftImgs.splice(idx, 1); renderPreviews();
   }
 
   function renderPreviews() {
     $("coverPreview").innerHTML = draftCover
-      ? `<div class="preview-item"><img src="${draftCover}"><button type="button" class="preview-del" onclick="removeDraftCover(event)">×</button></div>` : "";
+      ? `<div class="preview-item"><img src="${draftCover}"><button type="button" class="preview-del" onclick="removeCover(event)">×</button></div>` : "";
     $("noteImgsPreview").innerHTML = draftImgs.map((src, i) =>
-      `<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="removeDraftImg(event, ${i})">×</button></div>`
+      `<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="removeNoteImg(event, ${i})">×</button></div>`
     ).join("");
   }
 
@@ -469,9 +457,23 @@
       setStatus(method === "GET" ? "Синхронизация с облаком..." : "Сохранение в облако...");
       const url = `https://api.jsonbin.io/v3/b/${binId}${method === "GET" ? "/latest" : ""}`;
       const opt = { method, headers: { "X-Master-Key": apiKey } };
-      if (method === "PUT") { opt.headers["Content-Type"] = "application/json"; opt.body = JSON.stringify(farms); }
+      if (method === "PUT") {
+        const payload = JSON.stringify(farms);
+        if (payload.length > 98000) {
+          setStatus("Ошибка: слишком большой вес фото (лимит JSONBin ~100 КБ). Уменьшите кол-во скриншотов!", true);
+          alert("Общий размер базы с фото превысил бесплатный лимит JSONBin (~100 КБ)! Удалите лишние фото в этой или других фермах.");
+          return;
+        }
+        opt.headers["Content-Type"] = "application/json";
+        opt.body = payload;
+      }
       const res = await fetch(url, opt);
-      if (!res.ok) throw new Error(`Код ответа ${res.status}`);
+      if (!res.ok) {
+        if (res.status === 403) {
+          throw new Error("Код ответа 403 (лимит запросов/объёма JSONBin или доступ закрыт)");
+        }
+        throw new Error(`Код ответа ${res.status}`);
+      }
       if (method === "GET") {
         const data = await res.json();
         farms = Array.isArray(data.record) ? data.record : [];
