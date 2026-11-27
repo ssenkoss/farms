@@ -38,7 +38,7 @@
 
   .dots-wrap { position: relative; }
   .dots-btn { padding: 8px 11px; font-size: 16px; line-height: 1; font-weight: 700; }
-  .dots-menu { position: absolute; right: 0; top: calc(100% + 6px); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 6px; min-width: 195px; display: none; flex-direction: column; gap: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.35); z-index: 60; }
+  .dots-menu { position: absolute; right: 0; top: calc(100% + 6px); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 6px; min-width: 185px; display: none; flex-direction: column; gap: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.35); z-index: 60; }
   .dots-menu.open { display: flex; }
   .dots-menu button { width: 100%; text-align: left; padding: 7px 10px; font-size: 12.5px; border: none; background: transparent; }
   .dots-menu button:hover { background: var(--panel-2); }
@@ -63,7 +63,8 @@
 
   .broken-banner { background: rgba(239,83,80,.16); border-bottom: 1px solid rgba(239,83,80,.45); padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .broken-left { display: flex; align-items: center; gap: 9px; }
-  .excl-icon { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--crit); color: #fff; font-weight: 900; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+  .excl-icon { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--crit); color: #fff; font-weight: 900; font-size: 15px; display: flex; align-items: center; justify-content: center; animation: pulse 1.8s infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
   .broken-info { font-size: 12px; color: var(--crit); line-height: 1.3; }
   .broken-info b { color: var(--text); display: block; font-size: 12.5px; }
   .fix-btn { flex-shrink: 0; background: rgba(76,175,80,.2); border: 1px solid rgba(76,175,80,.55); color: var(--green); padding: 4px 8px; font-size: 11px; border-radius: 5px; font-weight: 600; }
@@ -107,7 +108,7 @@
 
   .file-box { display: block; background: var(--panel-2); border: 1px dashed #4a5a4a; border-radius: 6px; padding: 12px; font-size: 12px; transition: .15s; cursor: pointer; }
   .file-box.dragover { border-color: var(--green); background: rgba(76,175,80,.12); }
-  .file-box input { display: none; }
+  .file-box input[type="file"] { display: none; }
   .preview-strip { margin-top: 8px; }
   .preview-item { position: relative; width: 82px; height: 60px; }
   .preview-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 5px; border: 1px solid var(--border); background: #000; }
@@ -235,7 +236,7 @@
         <input type="file" id="fCoverInput" accept="image/*" onchange="handleCover(event)">
         <div><b>📷 Перетащите скриншот сюда или нажмите для выбора</b></div>
         <div class="hint">Картинка автоматически сожмётся.</div>
-        <div class="preview-strip" id="coverPreview" onclick="event.preventDefault();event.stopPropagation()"></div>
+        <div class="preview-strip" id="coverPreview" onclick="event.preventDefault(); event.stopPropagation();"></div>
       </label>
     </div>
 
@@ -278,7 +279,7 @@
       <label class="file-box" id="noteImgsDropZone" for="fNoteImgsInput">
         <input type="file" id="fNoteImgsInput" accept="image/*" multiple onchange="handleNoteImgs(event)">
         <div><b>🖼 Перетащите до 4 фото сюда или нажмите для выбора</b></div>
-        <div class="preview-strip" id="noteImgsPreview" onclick="event.preventDefault();event.stopPropagation()"></div>
+        <div class="preview-strip" id="noteImgsPreview" onclick="event.preventDefault(); event.stopPropagation();"></div>
       </label>
     </div>
 
@@ -304,13 +305,13 @@
 
 <div class="modal-backdrop" id="cloudModal">
   <div class="modal">
-    <h2>☁ База данных в GitHub (без лимита 100 КБ)</h2>
-    <p class="hint" style="margin-top:0;">Все фермы и фото сохраняются в файл <b>farms.json</b> прямо в вашем репозитории GitHub.</p>
+    <h2>☁ Подключение общей базы (GitHub)</h2>
+    <p class="hint" style="margin-top:0;">База <b>farms.json</b> хранится прямо в репозитории (лимит до 100 МБ, фото работают без ограничений):</p>
     <div class="row-2">
       <div class="form-group"><label>Владелец GitHub</label><input type="text" id="cOwner"></div>
       <div class="form-group"><label>Репозиторий</label><input type="text" id="cRepo"></div>
     </div>
-    <div class="form-group"><label>GitHub Token (Fine-grained, Contents: Read and write)</label><input type="password" id="cToken" placeholder="github_pat_..."></div>
+    <div class="form-group"><label>GitHub Token (если нужно обновить)</label><input type="password" id="cToken" placeholder="Оставьте пустым, чтобы использовать встроенный"></div>
     <div class="form-group"><label>Пароль на создание ферм</label><input type="text" id="cPass" placeholder="ROME"></div>
     <div class="modal-actions" style="justify-content: space-between;">
       <button type="button" onclick="importFromOldJsonBin()">⇄ Импорт из старого JSONBin</button>
@@ -329,7 +330,6 @@
 <script>
   const DEF_OWNER = "ssenkoss";
   const DEF_REPO = "farms";
-  const DEF_FILE = "farms.json";
   const GH_T1 = "github_pat_11CV4OQ7A08RS5Lg7AIG9M_";
   const GH_T2 = "YIyoyU0GCnEVrpUQ77vBYn8bz79ErWmcHFEmWfiu2biU3UCHHBRra1FsRnE";
 
@@ -340,23 +340,13 @@
   const PASS_CREATE = "ROME";
   const PASS_ADMIN = "ROMEFARMS";
 
-  function $(id) { return document.getElementById(id); }
-
-  let farms = [];
-  let editId = null;
-  let reportId = null;
-  let draftCover = "";
-  let draftImgs = [];
-  let authCb = null;
-  let authExp = "";
-  let fileSha = null;
+  const $ = id => document.getElementById(id);
+  let farms = [], fileSha = null, editId = null, reportId = null, draftCover = "", draftImgs = [], authCb = null, authExp = "";
 
   if (localStorage.getItem("clan_pass") && localStorage.getItem("clan_pass") !== PASS_CREATE) {
     localStorage.removeItem("clan_pass");
   }
-  if (localStorage.getItem("clan_theme") === "light") {
-    document.body.classList.add("light-theme");
-  }
+  if (localStorage.getItem("clan_theme") === "light") document.body.classList.add("light-theme");
 
   function getCfg() {
     return {
@@ -367,9 +357,8 @@
     };
   }
 
-  function setStatus(txt, err) {
+  function setStatus(txt, err = false) {
     const el = $("syncStatus");
-    if (!el) return;
     el.textContent = txt;
     el.style.color = err ? "var(--crit)" : "var(--muted)";
   }
@@ -380,22 +369,10 @@
     $("dotsMenu").classList.remove("open");
   }
 
-  function toggleDots(e) {
-    e.stopPropagation();
-    $("dotsMenu").classList.toggle("open");
-  }
+  function toggleDots(e) { e.stopPropagation(); $("dotsMenu").classList.toggle("open"); }
+  document.addEventListener("click", e => { if (!$("dotsWrap").contains(e.target)) $("dotsMenu").classList.remove("open"); });
 
-  document.addEventListener("click", function(e) {
-    const wrap = $("dotsWrap");
-    if (wrap && !wrap.contains(e.target)) {
-      $("dotsMenu").classList.remove("open");
-    }
-  });
-
-  function openModal(id) {
-    $(id).classList.add("open");
-  }
-
+  function openModal(id) { $(id).classList.add("open"); }
   function closeModal(id) {
     if (id === "addModal") editId = null;
     if (id === "reportModal") reportId = null;
@@ -404,24 +381,21 @@
   }
 
   function askPass(pass, title, desc, cb) {
-    if (!pass) { cb(); return; }
-    authExp = pass;
-    authCb = cb;
+    if (!pass) return cb();
+    authExp = pass; authCb = cb;
     $("authTitle").textContent = title;
     $("authDesc").textContent = desc;
     $("authPassInput").value = "";
     $("authPassInput").type = "password";
     $("authErr").textContent = "";
     openModal("authModal");
-    setTimeout(function() { $("authPassInput").focus(); }, 50);
+    setTimeout(() => $("authPassInput").focus(), 50);
   }
-
   function toggleEye() {
     const inp = $("authPassInput");
     inp.type = inp.type === "password" ? "text" : "password";
     inp.focus();
   }
-
   function confirmAuth() {
     if ($("authPassInput").value.trim() !== authExp) {
       $("authErr").textContent = "Неверный пароль! Проверьте раскладку и регистр.";
@@ -434,129 +408,104 @@
 
   function bindDrop(id, fn) {
     const z = $(id);
-    if (!z) return;
-    ["dragenter", "dragover"].forEach(function(ev) {
-      z.addEventListener(ev, function(e) { e.preventDefault(); z.classList.add("dragover"); });
-    });
-    ["dragleave", "drop"].forEach(function(ev) {
-      z.addEventListener(ev, function(e) { e.preventDefault(); z.classList.remove("dragover"); });
-    });
-    z.addEventListener("drop", function(e) {
-      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
-        fn(e.dataTransfer.files);
-      }
+    ["dragenter", "dragover"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add("dragover"); }));
+    ["dragleave", "drop"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove("dragover"); }));
+    z.addEventListener("drop", e => {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) fn(e.dataTransfer.files);
     });
   }
-
-  bindDrop("coverDropZone", function(files) { setCover(files[0]); });
-  bindDrop("noteImgsDropZone", function(files) { addNoteImgs(files); });
+  bindDrop("coverDropZone", files => setCover(files[0]));
+  bindDrop("noteImgsDropZone", files => addNoteImgs(files));
 
   function compress(file, maxW, q) {
-    return new Promise(function(res, rej) {
+    return new Promise((res, rej) => {
       const r = new FileReader();
-      r.onload = function(e) {
+      r.onload = e => {
         const img = new Image();
-        img.onload = function() {
-          let w = img.width;
-          let h = img.height;
-          if (w > maxW) {
-            h = Math.round(h * (maxW / w));
-            w = maxW;
-          }
-          const c = document.createElement("canvas");
-          c.width = w;
-          c.height = h;
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if (w > maxW) { h = Math.round(h * (maxW / w)); w = maxW; }
+          const c = Object.assign(document.createElement("canvas"), { width: w, height: h });
           c.getContext("2d").drawImage(img, 0, 0, w, h);
           res(c.toDataURL("image/jpeg", q));
         };
-        img.onerror = rej;
-        img.src = e.target.result;
+        img.onerror = rej; img.src = e.target.result;
       };
-      r.onerror = rej;
-      r.readAsDataURL(file);
+      r.onerror = rej; r.readAsDataURL(file);
     });
   }
 
   async function setCover(file) {
-    if (!file || !file.type || !file.type.startsWith("image/")) return;
-    draftCover = await compress(file, 850, 0.72);
+    if (!file || !file.type.startsWith("image/")) return;
+    draftCover = await compress(file, 900, 0.78);
     renderPreviews();
   }
-
   function handleCover(e) {
     if (e.target.files && e.target.files[0]) setCover(e.target.files[0]);
     e.target.value = "";
   }
 
   async function addNoteImgs(list) {
-    const files = Array.from(list).filter(function(f) { return f.type && f.type.startsWith("image/"); }).slice(0, 4 - draftImgs.length);
-    for (let i = 0; i < files.length; i++) {
-      const compressed = await compress(files[i], 750, 0.68);
-      draftImgs.push(compressed);
-    }
+    const files = Array.from(list).filter(f => f.type.startsWith("image/")).slice(0, 4 - draftImgs.length);
+    for (const f of files) draftImgs.push(await compress(f, 800, 0.75));
     renderPreviews();
   }
-
   function handleNoteImgs(e) {
-    if (e.target.files) addNoteImgs(e.target.files);
+    if (e.target.files && e.target.files.length) addNoteImgs(e.target.files);
     e.target.value = "";
+  }
+
+  function removeCover(e) {
+    e.preventDefault(); e.stopPropagation();
+    draftCover = ""; $("fCoverInput").value = ""; renderPreviews();
+  }
+  function removeNoteImg(e, idx) {
+    e.preventDefault(); e.stopPropagation();
+    draftImgs.splice(idx, 1); renderPreviews();
   }
 
   function renderPreviews() {
     $("coverPreview").innerHTML = draftCover
-      ? '<div class="preview-item"><img src="' + draftCover + '"><button type="button" class="preview-del" onclick="draftCover='';renderPreviews()">×</button></div>'
-      : "";
-    $("noteImgsPreview").innerHTML = draftImgs.map(function(src, i) {
-      return '<div class="preview-item"><img src="' + src + '"><button type="button" class="preview-del" onclick="draftImgs.splice(' + i + ',1);renderPreviews()">×</button></div>';
-    }).join("");
+      ? `<div class="preview-item"><img src="${draftCover}"><button type="button" class="preview-del" onclick="removeCover(event)">×</button></div>` : "";
+    $("noteImgsPreview").innerHTML = draftImgs.map((src, i) =>
+      `<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="removeNoteImg(event, ${i})">×</button></div>`
+    ).join("");
   }
 
-  function b64EncodeUnicode(str) {
+  function toBase64Utf8(str) {
     const bytes = new TextEncoder().encode(str);
     let bin = "";
-    for (let i = 0; i < bytes.length; i++) {
-      bin += String.fromCharCode(bytes[i]);
-    }
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
     return btoa(bin);
   }
-
-  function b64DecodeUnicode(b64) {
+  function fromBase64Utf8(b64) {
     const bin = atob(b64.replace(/\s/g, ""));
     const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) {
-      bytes[i] = bin.charCodeAt(i);
-    }
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return new TextDecoder().decode(bytes);
   }
 
-  async function loadFromGitHub() {
-    const cfg = getCfg();
-    const apiUrl = "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + DEF_FILE + "?t=" + Date.now();
+  async function loadFarms() {
+    const { owner, repo, token } = getCfg();
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/farms.json?t=${Date.now()}`;
     try {
-      setStatus("Загрузка базы клана...", false);
-      let headers = { "Accept": "application/vnd.github+json" };
-      if (cfg.token) headers["Authorization"] = "Bearer " + cfg.token;
-
-      let res = await fetch(apiUrl, { headers: headers });
-      if (res.status === 401 && cfg.token) {
-        res = await fetch(apiUrl, { headers: { "Accept": "application/vnd.github+json" } });
+      setStatus("Загрузка базы клана...");
+      let res = await fetch(apiUrl, token ? { headers: { "Authorization": `Bearer ${token}` } } : {});
+      if (res.status === 401 && token) {
+        res = await fetch(apiUrl);
       }
-
       if (res.status === 404) {
-        fileSha = null;
         farms = [];
-        setStatus("База farms.json ещё не создана (создастся при добавлении фермы)", false);
-        render();
-        return;
+        fileSha = null;
+        setStatus("База farms.json ещё не создана (нажмите ⋮ → Облако / GitHub для импорта или добавьте ферму)");
+        return render();
       }
-      if (!res.ok) throw new Error("GitHub API: " + res.status);
-
+      if (!res.ok) throw new Error(`GitHub API ${res.status}`);
       const data = await res.json();
       fileSha = data.sha;
-      const decoded = b64DecodeUnicode(data.content);
-      const parsed = JSON.parse(decoded);
-      farms = Array.isArray(parsed) ? parsed : [];
-      setStatus("База клана подключена ✓ (ферм: " + farms.length + ")", false);
+      const content = data.content ? fromBase64Utf8(data.content) : "[]";
+      farms = JSON.parse(content || "[]");
+      setStatus("База клана подключена (GitHub) ✓");
       render();
     } catch (e) {
       setStatus("Ошибка загрузки: " + e.message, true);
@@ -565,71 +514,69 @@
   }
 
   async function saveToGitHub() {
-    const cfg = getCfg();
-    if (!cfg.token) {
-      alert("Не указан GitHub Token! Откройте ⋮ → Облако / GitHub (пароль ROMES0fa) и вставьте токен.");
+    const { owner, repo, token } = getCfg();
+    if (!token) {
+      setStatus("Ошибка: не задан GitHub Token в ⋮ → Облако / GitHub", true);
       return;
     }
-    const apiUrl = "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + DEF_FILE;
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/farms.json`;
     try {
-      setStatus("Сохранение в GitHub...", false);
-      const checkRes = await fetch(apiUrl + "?t=" + Date.now(), {
-        headers: { "Authorization": "Bearer " + cfg.token, "Accept": "application/vnd.github+json" }
+      setStatus("Сохранение в базу клана...");
+      const checkRes = await fetch(`${apiUrl}?t=${Date.now()}`, {
+        headers: { "Authorization": `Bearer ${token}` }
       });
+      if (checkRes.status === 401) {
+        throw new Error("Токен отклонён GitHub (401). Создайте новый Fine-grained токен и вставьте в ⋮ → Облако / GitHub");
+      }
       if (checkRes.ok) {
-        const checkData = await checkRes.json();
-        fileSha = checkData.sha;
-      } else if (checkRes.status === 401) {
-        throw new Error("Токен отклонён GitHub (401). Создайте новый токен и вставьте в меню Облако.");
+        const latest = await checkRes.json();
+        fileSha = latest.sha;
+      } else if (checkRes.status === 404) {
+        fileSha = null;
       }
 
       const body = {
-        message: "Update farms.json",
-        content: b64EncodeUnicode(JSON.stringify(farms, null, 2))
+        message: "Обновление базы ферм клана",
+        content: toBase64Utf8(JSON.stringify(farms, null, 2))
       };
       if (fileSha) body.sha = fileSha;
 
       const putRes = await fetch(apiUrl, {
         method: "PUT",
         headers: {
-          "Authorization": "Bearer " + cfg.token,
-          "Accept": "application/vnd.github+json",
+          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify(body)
       });
-
       if (!putRes.ok) {
-        const errObj = await putRes.json().catch(function() { return {}; });
-        throw new Error((errObj.message || "Ошибка") + " (" + putRes.status + ")");
+        const errData = await putRes.json().catch(() => ({}));
+        throw new Error(`${putRes.status}: ${errData.message || "Ошибка записи"}`);
       }
-      const putData = await putRes.json();
-      if (putData.content && putData.content.sha) fileSha = putData.content.sha;
-      setStatus("Сохранено в общую базу клана ✓", false);
+      const saved = await putRes.json();
+      fileSha = saved.content.sha;
+      setStatus("Сохранено в общую базу клана ✓");
       render();
     } catch (e) {
       setStatus("Ошибка сохранения: " + e.message, true);
-      alert("Не удалось сохранить в GitHub: " + e.message);
+      alert("Не удалось сохранить в GitHub:
+" + e.message);
     }
   }
 
   async function importFromOldJsonBin() {
     try {
-      setStatus("Импорт из старого JSONBin...", false);
-      const res = await fetch("https://api.jsonbin.io/v3/b/" + OLD_BIN + "/latest", {
+      setStatus("Загрузка данных из старого JSONBin...");
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${OLD_BIN}/latest`, {
         headers: { "X-Master-Key": OLD_KEY }
       });
-      if (!res.ok) throw new Error("JSONBin вернул " + res.status);
+      if (!res.ok) throw new Error(`JSONBin ответил кодом ${res.status}`);
       const data = await res.json();
       const oldList = Array.isArray(data.record) ? data.record : [];
-      if (!oldList.length) {
-        alert("В старом JSONBin пусто.");
-        return;
-      }
+      if (!oldList.length) return alert("В старой базе JSONBin не найдено ферм.");
       farms = oldList;
       closeModal("cloudModal");
       await saveToGitHub();
-      alert("Успешно перенесено ферм: " + farms.length);
     } catch (e) {
       setStatus("Ошибка импорта: " + e.message, true);
       alert("Ошибка импорта из JSONBin: " + e.message);
@@ -637,26 +584,20 @@
   }
 
   function openAddModal() {
-    askPass(getCfg().createPass, "➕ Создание фермы", "Введите пароль для добавления фермы:", function() {
+    askPass(getCfg().createPass, "➕ Создание фермы", "Введите пароль для добавления фермы:", () => {
       editId = null;
       $("modalTitle").textContent = "Добавить ферму";
       $("saveBtn").textContent = "Сохранить";
-      ["fName", "fAuthor", "fX", "fY", "fZ", "fRate", "fNote", "fCoverInput", "fNoteImgsInput"].forEach(function(id) {
-        $(id).value = "";
-      });
-      $("fType").selectedIndex = 0;
-      $("fDim").value = "Верхний мир";
-      $("fPrio").value = "med";
-      draftCover = "";
-      draftImgs = [];
-      renderPreviews();
+      ["fName", "fAuthor", "fX", "fY", "fZ", "fRate", "fNote", "fCoverInput", "fNoteImgsInput"].forEach(id => $(id).value = "");
+      $("fType").selectedIndex = 0; $("fDim").value = "Верхний мир"; $("fPrio").value = "med";
+      draftCover = ""; draftImgs = []; renderPreviews();
       openModal("addModal");
     });
   }
 
   function openEditModal(id) {
-    askPass(PASS_ADMIN, "✏️ Редактирование фермы", "Введите пароль администратора:", function() {
-      const f = farms.find(function(x) { return String(x.id) === String(id); });
+    askPass(PASS_ADMIN, "✏️ Редактирование фермы", "Введите пароль администратора:", () => {
+      const f = farms.find(x => String(x.id) === String(id));
       if (!f) return;
       editId = f.id;
       $("modalTitle").textContent = "Редактировать ферму";
@@ -665,47 +606,31 @@
       $("fName").value = f.name || "";
       $("fDim").value = f.dim || "Верхний мир";
       $("fAuthor").value = f.author === "Не указан" ? "" : (f.author || "");
-      $("fX").value = f.x !== undefined ? f.x : "";
-      $("fY").value = f.y !== undefined ? f.y : "";
-      $("fZ").value = f.z !== undefined ? f.z : "";
-      $("fRate").value = f.rate || "";
-      $("fPrio").value = f.prio || "med";
-      $("fNote").value = f.note || "";
+      $("fX").value = f.x ?? ""; $("fY").value = f.y ?? ""; $("fZ").value = f.z ?? "";
+      $("fRate").value = f.rate || ""; $("fPrio").value = f.prio || "med"; $("fNote").value = f.note || "";
       draftCover = f.cover || "";
-      draftImgs = Array.isArray(f.noteImgs) ? f.noteImgs.slice() : [];
-      $("fCoverInput").value = "";
-      $("fNoteImgsInput").value = "";
+      draftImgs = Array.isArray(f.noteImgs) ? [...f.noteImgs] : [];
+      $("fCoverInput").value = ""; $("fNoteImgsInput").value = "";
       renderPreviews();
       openModal("addModal");
     });
   }
 
   async function saveFarm() {
-    const name = $("fName").value.trim();
-    const rate = $("fRate").value.trim();
-    if (!name || !rate) {
-      alert("Заполните название фермы и ресы/ч!");
-      return;
-    }
-    const old = editId !== null ? farms.find(function(x) { return String(x.id) === String(editId); }) : null;
+    const name = $("fName").value.trim(), rate = $("fRate").value.trim();
+    if (!name || !rate) return alert("Заполните название фермы и ресы/ч!");
+    const old = editId !== null ? farms.find(x => String(x.id) === String(editId)) : null;
     const item = {
       id: editId !== null ? editId : Date.now(),
-      type: $("fType").value,
-      name: name,
-      dim: $("fDim").value,
-      x: $("fX").value || 0,
-      y: $("fY").value || 64,
-      z: $("fZ").value || 0,
-      rate: rate,
-      prio: $("fPrio").value,
-      note: $("fNote").value.trim(),
+      type: $("fType").value, name, dim: $("fDim").value,
+      x: $("fX").value || 0, y: $("fY").value || 64, z: $("fZ").value || 0,
+      rate, prio: $("fPrio").value, note: $("fNote").value.trim(),
       author: $("fAuthor").value.trim() || "Не указан",
-      cover: draftCover,
-      noteImgs: draftImgs.slice(),
-      reports: Array.isArray(old && old.reports) ? old.reports : []
+      cover: draftCover, noteImgs: [...draftImgs],
+      reports: Array.isArray(old?.reports) ? old.reports : []
     };
     if (editId !== null) {
-      const idx = farms.findIndex(function(x) { return String(x.id) === String(editId); });
+      const idx = farms.findIndex(x => String(x.id) === String(editId));
       if (idx !== -1) farms[idx] = item;
     } else {
       farms.unshift(item);
@@ -716,108 +641,83 @@
 
   function openSonyaModal() {
     $("dotsMenu").classList.remove("open");
-    askPass(getCfg().createPass, "📥 Доступ для Сони", "Введите пароль для добавления ферм:", function() {
+    askPass(getCfg().createPass, "📥 Доступ для Сони", "Введите пароль для добавления ферм:", () => {
       $("sonyaCodeInput").value = "";
       openModal("sonyaModal");
     });
   }
 
   async function importSonyaCode() {
-    const lines = $("sonyaCodeInput").value.trim().split(/\r?\n/).map(function(l) { return l.trim(); }).filter(Boolean);
-    if (!lines.length) {
-      alert("Вставьте хотя бы одну строку с кодом фермы!");
-      return;
-    }
+    const lines = $("sonyaCodeInput").value.trim().split(/
+?
+/).map(l => l.trim()).filter(Boolean);
+    if (!lines.length) return alert("Вставьте хотя бы одну строку с кодом фермы!");
     let count = 0;
-    lines.forEach(function(line, idx) {
-      const p = line.split("@").map(function(s) { return s.trim(); });
+    lines.forEach((line, idx) => {
+      const p = line.split("@").map(s => s.trim());
       if (p.length < 2) return;
       const nums = (p[2] || "").match(/-?\d+(\.\d+)?/g) || [];
-      let x = 0, y = 64, z = 0;
-      if (nums.length === 2) {
-        x = Math.round(Number(nums[0]));
-        z = Math.round(Number(nums[1]));
-      } else if (nums.length >= 3) {
-        x = Math.round(Number(nums[0]));
-        y = Math.round(Number(nums[1]));
-        z = Math.round(Number(nums[2]));
-      }
-      const d = (p[3] || "").toLowerCase();
-      const pr = (p[5] || "").toLowerCase();
+      const [x, y, z] = nums.length === 2 ? [Math.round(Number(nums[0])), 64, Math.round(Number(nums[1]))]
+        : nums.length >= 3 ? [Math.round(Number(nums[0])), Math.round(Number(nums[1])), Math.round(Number(nums[2]))] : [0, 64, 0];
+      const d = (p[3] || "").toLowerCase(), pr = (p[5] || "").toLowerCase();
       farms.unshift({
         id: Date.now() + idx,
-        name: p[0] || "Без названия",
-        rate: p[1] || "Не указано",
-        x: x,
-        y: y,
-        z: z,
-        dim: p.length <= 4 ? "Верхний мир" : (d.includes("незер") || d.includes("ад") ? "Незер" : (d.includes("энд") ? "Энд" : "Верхний мир")),
+        name: p[0] || "Без названия", rate: p[1] || "Не указано", x, y, z,
+        dim: p.length <= 4 ? "Верхний мир" : d.includes("незер") || d.includes("ад") ? "Незер" : d.includes("энд") ? "Энд" : "Верхний мир",
         type: p.length <= 4 ? "Другое" : (p[4] || "Другое"),
-        prio: p.length <= 4 ? "med" : (pr.includes("крит") ? "crit" : (pr.includes("низ") ? "low" : "med")),
+        prio: p.length <= 4 ? "med" : pr.includes("крит") ? "crit" : pr.includes("низ") ? "low" : "med",
         author: p.length <= 4 ? "Не указан" : (p[6] || "Не указан"),
         note: p.length <= 4 ? (p[3] || "") : p.slice(7).join("@"),
-        cover: "",
-        noteImgs: [],
-        reports: []
+        cover: "", noteImgs: [], reports: []
       });
       count++;
     });
-    if (!count) {
-      alert("Не удалось распознать код. Используйте разделитель @");
-      return;
-    }
+    if (!count) return alert("Не удалось распознать код. Используйте разделитель @");
     closeModal("sonyaModal");
     await saveToGitHub();
   }
 
   function openReportModal(id) {
-    const f = farms.find(function(x) { return String(x.id) === String(id); });
+    const f = farms.find(x => String(x.id) === String(id));
     if (!f) return;
     reportId = f.id;
-    $("reportFarmName").textContent = "Ферма: " + f.name;
-    $("rAuthor").value = "";
-    $("rText").value = "";
+    $("reportFarmName").textContent = `Ферма: ${f.name}`;
+    $("rAuthor").value = ""; $("rText").value = "";
     openModal("reportModal");
   }
 
   async function submitReport() {
     const text = $("rText").value.trim();
-    if (!text) {
-      alert("Опишите, что именно сломалось!");
-      return;
-    }
-    const idx = farms.findIndex(function(x) { return String(x.id) === String(reportId); });
+    if (!text) return alert("Опишите, что именно сломалось!");
+    const idx = farms.findIndex(x => String(x.id) === String(reportId));
     if (idx === -1) return;
     if (!Array.isArray(farms[idx].reports)) farms[idx].reports = [];
     const now = new Date();
     const date = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) + " " + now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-    farms[idx].reports.push({ author: $("rAuthor").value.trim() || "Игрок", text: text, date: date });
+    farms[idx].reports.push({ author: $("rAuthor").value.trim() || "Игрок", text, date });
     closeModal("reportModal");
     await saveToGitHub();
   }
 
   function clearReports(id) {
-    askPass(PASS_ADMIN, "🛠 Снятие репорта", "Введите пароль администратора:", async function() {
-      const idx = farms.findIndex(function(x) { return String(x.id) === String(id); });
-      if (idx !== -1) {
-        farms[idx].reports = [];
-        await saveToGitHub();
-      }
+    askPass(PASS_ADMIN, "🛠 Снятие репорта", "Введите пароль администратора (ROMEFARMS):", async () => {
+      const idx = farms.findIndex(x => String(x.id) === String(id));
+      if (idx !== -1) { farms[idx].reports = []; await saveToGitHub(); }
     });
   }
 
   function deleteFarm(id) {
-    const target = farms.find(function(x) { return String(x.id) === String(id); });
+    const target = farms.find(x => String(x.id) === String(id));
     if (!target) return;
-    askPass(PASS_ADMIN, "🗑 Удаление фермы", "Введите пароль для удаления «" + target.name + "»:", async function() {
-      farms = farms.filter(function(x) { return String(x.id) !== String(id); });
+    askPass(PASS_ADMIN, "🗑 Удаление фермы", `Введите пароль для удаления «${target.name}»:`, async () => {
+      farms = farms.filter(x => String(x.id) !== String(id));
       await saveToGitHub();
     });
   }
 
   function openCloudModal() {
     $("dotsMenu").classList.remove("open");
-    askPass(PASS_CLOUD, "☁ Вход в настройки облака", "Введите пароль доступа к облаку:", function() {
+    askPass(PASS_CLOUD, "☁ Вход в настройки облака", "Введите пароль доступа к облаку:", () => {
       const cfg = getCfg();
       $("cOwner").value = cfg.owner;
       $("cRepo").value = cfg.repo;
@@ -830,40 +730,26 @@
   function saveCloudConfig() {
     localStorage.setItem("gh_owner", $("cOwner").value.trim() || DEF_OWNER);
     localStorage.setItem("gh_repo", $("cRepo").value.trim() || DEF_REPO);
-    const tok = $("cToken").value.trim();
-    if (tok) localStorage.setItem("gh_token", tok);
-    else localStorage.removeItem("gh_token");
-    localStorage.setItem("clan_pass", $("cPass").value.trim() || PASS_CREATE);
+    const t = $("cToken").value.trim();
+    if (t) localStorage.setItem("gh_token", t);
+    localStorage.setItem("clan_pass", $("cPass").value.trim());
     closeModal("cloudModal");
-    loadFromGitHub();
+    loadFarms();
   }
 
-  function esc(s) {
-    return String(s).replace(/[&<>"']/g, function(m) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m];
-    });
-  }
-
-  function openLightbox(src) {
-    $("lightboxImg").src = src;
-    openModal("lightbox");
-  }
-
+  const esc = s => String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  const openLightbox = src => { $("lightboxImg").src = src; openModal("lightbox"); };
   function copyCoords(txt, btn) {
     navigator.clipboard.writeText(txt);
-    const old = btn.textContent;
-    btn.textContent = "Скопировано!";
-    setTimeout(function() { btn.textContent = old; }, 1200);
+    const old = btn.textContent; btn.textContent = "Скопировано!";
+    setTimeout(() => btn.textContent = old, 1200);
   }
 
   function render() {
-    const q = $("searchInput").value.toLowerCase();
-    const tf = $("typeFilter").value;
-    const pf = $("prioFilter").value;
-
+    const q = $("searchInput").value.toLowerCase(), tf = $("typeFilter").value, pf = $("prioFilter").value;
     $("statTotal").textContent = farms.length;
-    $("statBroken").textContent = farms.filter(function(f) { return f.reports && f.reports.length > 0; }).length;
-    $("statCrit").textContent = farms.filter(function(f) { return f.prio === "crit"; }).length;
+    $("statBroken").textContent = farms.filter(f => f.reports?.length > 0).length;
+    $("statCrit").textContent = farms.filter(f => f.prio === "crit").length;
 
     const prioMap = {
       crit: ["🔴 Критичный риск поломки", "prio-crit"],
@@ -871,66 +757,50 @@
       low:  ["🔵 Надёжная (низкий риск)", "prio-low"]
     };
 
-    const list = farms.filter(function(f) {
-      const broken = f.reports && f.reports.length > 0;
+    const list = farms.filter(f => {
+      const broken = f.reports?.length > 0;
       if (tf && f.type !== tf) return false;
       if (pf === "broken" && !broken) return false;
       if (pf && pf !== "broken" && f.prio !== pf) return false;
-      const hay = [f.name, f.type, f.dim, f.x, f.y, f.z, f.note, f.author].join(" ").toLowerCase();
-      return hay.indexOf(q) !== -1;
+      return `${f.name} ${f.type} ${f.dim} ${f.x} ${f.y} ${f.z} ${f.note} ${f.author}`.toLowerCase().includes(q);
     });
 
-    if (!list.length) {
-      $("farmsGrid").innerHTML = '<div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму», чтобы создать первую запись.</div>';
-      return;
-    }
-
-    $("farmsGrid").innerHTML = list.map(function(f) {
-      const pair = prioMap[f.prio] || prioMap.low;
-      const pText = pair[0];
-      const pCls = pair[1];
-      const coords = f.x + " " + f.y + " " + f.z;
-      const reps = Array.isArray(f.reports) ? f.reports : [];
-      const broken = reps.length > 0;
-
-      const banner = broken
-        ? '<div class="broken-banner"><div class="broken-left"><div class="excl-icon">!</div><div class="broken-info"><b>ТРЕБУЕТСЯ РЕМОНТ (' + reps.length + ')</b><span>Ферма сломана! Смотрите репорт ниже.</span></div></div><button type="button" class="fix-btn" onclick="clearReports('' + f.id + '')">✓ Починили</button></div>'
-        : "";
-      const cover = f.cover ? '<img class="card-cover" src="' + f.cover + '" onclick="openLightbox('' + f.cover + '')">' : "";
-      const repBox = broken
-        ? '<div class="report-box"><div class="report-box-title">🚨 Репорты о поломке:</div>' + reps.map(function(r) {
-            return '<div class="report-item"><b>' + esc(r.author) + '</b> (' + esc(r.date || "") + '): ' + esc(r.text) + '</div>';
-          }).join("") + '</div>'
-        : "";
-      const noteHtml = f.note ? '<div class="note">' + esc(f.note) + '</div>' : "";
-      const thumbsHtml = (Array.isArray(f.noteImgs) && f.noteImgs.length)
-        ? '<div class="note-thumbs">' + f.noteImgs.map(function(s) {
-            return '<img class="note-thumb" src="' + s + '" onclick="openLightbox('' + s + '')">';
-          }).join("") + '</div>'
-        : "";
-
-      return '<div class="card ' + (broken ? "broken" : "") + '">' +
-        banner + cover +
-        '<div class="card-body">' +
-          '<div><div class="card-top"><span class="type-badge">' + esc(f.type) + '</span><span class="prio-badge ' + pCls + '">' + pText + '</span></div><h3>' + esc(f.name) + '</h3></div>' +
-          repBox +
-          '<div class="info-row"><span>🌍 ' + esc(f.dim) + ': <b class="coords">' + esc(coords) + '</b></span><button type="button" class="copy-btn" onclick="copyCoords('' + esc(coords) + '', this)">Копировать</button></div>' +
-          '<div class="info-row"><span>⚡ Ресы/ч:</span><b>' + esc(f.rate) + '</b></div>' +
-          noteHtml + thumbsHtml +
-        '</div>' +
-        '<div class="card-foot">' +
-          '<span>Построил: <b>' + esc(f.author) + '</b></span>' +
-          '<div class="card-foot-actions">' +
-            '<button type="button" class="sm-btn report-btn" onclick="openReportModal('' + f.id + '')">⚠ Репорт</button>' +
-            '<button type="button" class="sm-btn edit-btn" onclick="openEditModal('' + f.id + '')">Редактировать</button>' +
-            '<button type="button" class="sm-btn danger" onclick="deleteFarm('' + f.id + '')">Удалить</button>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
-    }).join("");
+    $("farmsGrid").innerHTML = !list.length
+      ? `<div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму» или перенесите старые фермы через ⋮ → Облако / GitHub.</div>`
+      : list.map(f => {
+          const [pText, pCls] = prioMap[f.prio] || prioMap.low;
+          const coords = `${f.x} ${f.y} ${f.z}`, reps = f.reports || [], broken = reps.length > 0;
+          return `
+            <div class="card ${broken ? "broken" : ""}">
+              ${broken ? `<div class="broken-banner">
+                <div class="broken-left"><div class="excl-icon">!</div><div class="broken-info"><b>ТРЕБУЕТСЯ РЕМОНТ (${reps.length})</b><span>Ферма сломана! Смотрите репорт ниже.</span></div></div>
+                <button type="button" class="fix-btn" onclick="clearReports('${f.id}')">✓ Починили</button>
+              </div>` : ""}
+              ${f.cover ? `<img class="card-cover" src="${f.cover}" onclick="openLightbox('${f.cover}')">` : ""}
+              <div class="card-body">
+                <div>
+                  <div class="card-top"><span class="type-badge">${esc(f.type)}</span><span class="prio-badge ${pCls}">${pText}</span></div>
+                  <h3>${esc(f.name)}</h3>
+                </div>
+                ${broken ? `<div class="report-box"><div class="report-box-title">🚨 Репорты о поломке:</div>${reps.map(r => `<div class="report-item"><b>${esc(r.author)}</b> (${esc(r.date || "")}): ${esc(r.text)}</div>`).join("")}</div>` : ""}
+                <div class="info-row"><span>🌍 ${esc(f.dim)}: <b class="coords">${esc(coords)}</b></span><button type="button" class="copy-btn" onclick="copyCoords('${esc(coords)}', this)">Копировать</button></div>
+                <div class="info-row"><span>⚡ Ресы/ч:</span><b>${esc(f.rate)}</b></div>
+                ${f.note ? `<div class="note">${esc(f.note)}</div>` : ""}
+                ${f.noteImgs?.length ? `<div class="note-thumbs">${f.noteImgs.map(s => `<img class="note-thumb" src="${s}" onclick="openLightbox('${s}')">`).join("")}</div>` : ""}
+              </div>
+              <div class="card-foot">
+                <span>Построил: <b>${esc(f.author)}</b></span>
+                <div class="card-foot-actions">
+                  <button type="button" class="sm-btn report-btn" onclick="openReportModal('${f.id}')">⚠ Репорт</button>
+                  <button type="button" class="sm-btn edit-btn" onclick="openEditModal('${f.id}')">Редактировать</button>
+                  <button type="button" class="sm-btn danger" onclick="deleteFarm('${f.id}')">Удалить</button>
+                </div>
+              </div>
+            </div>`;
+        }).join("");
   }
 
-  loadFromGitHub();
+  loadFarms();
 </script>
 </body>
 </html>
