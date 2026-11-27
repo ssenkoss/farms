@@ -1,1502 +1,1208 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Фермы клана — Minecraft</title>
-<style>
-  :root {
-    --bg: #121512;
-    --panel: #1b201b;
-    --panel-2: #242b24;
-    --border: #333e33;
-    --text: #e6ede6;
-    --note-text: #cdd8cd;
-    --muted: #93a393;
-    --green: #4caf50;
-    --green-hover: #43a047;
-    --crit: #ef5350;
-    --med: #ffb74d;
-    --low: #64b5f6;
-    --hover-btn: #2c352c;
-    --hover-border: #556855;
-  }
-  body.light-theme {
-    --bg: #f1f4f1;
-    --panel: #ffffff;
-    --panel-2: #e6ece6;
-    --border: #cbd5cb;
-    --text: #182018;
-    --note-text: #2c382c;
-    --muted: #586958;
-    --green: #2e7d32;
-    --green-hover: #1b5e20;
-    --crit: #d32f2f;
-    --med: #e65100;
-    --low: #1565c0;
-    --hover-btn: #dce4dc;
-    --hover-border: #9eb09e;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.45;
-    transition: background 0.2s, color 0.2s;
-  }
-  header {
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 24px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .title-wrap h1 {
-    margin: 0;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .status-line {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-  .header-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  button {
-    background: var(--panel-2);
-    color: var(--text);
-    border: 1px solid var(--border);
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: 0.15s;
-  }
-  button:hover { border-color: var(--hover-border); background: var(--hover-btn); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  button.primary {
-    background: var(--green);
-    border-color: var(--green);
-    color: #fff;
-  }
-  button.primary:hover { background: var(--green-hover); }
-  button.edit-btn {
-    color: var(--low);
-    border-color: rgba(100,181,246,0.45);
-    padding: 5px 9px;
-    font-size: 12px;
-  }
-  button.edit-btn:hover { background: rgba(100,181,246,0.15); }
-  button.report-btn {
-    color: var(--med);
-    border-color: rgba(255,183,77,0.45);
-    padding: 5px 9px;
-    font-size: 12px;
-  }
-  button.report-btn:hover { background: rgba(255,183,77,0.15); }
-  button.danger {
-    color: var(--crit);
-    border-color: rgba(239,83,80,0.4);
-    padding: 5px 9px;
-    font-size: 12px;
-  }
-  button.danger:hover { background: rgba(239,83,80,0.15); }
+Фермы клана — Minecraft
 
-  /* Меню три точки */
-  .dots-wrap {
-    position: relative;
-  }
-  .dots-btn {
-    padding: 8px 11px;
-    font-size: 16px;
-    line-height: 1;
-    font-weight: 700;
-  }
-  .dots-menu {
-    position: absolute;
-    right: 0;
-    top: calc(100% + 6px);
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px;
-    min-width: 185px;
-    display: none;
-    flex-direction: column;
-    gap: 4px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-    z-index: 60;
-  }
-  .dots-menu.open { display: flex; }
-  .dots-menu button {
-    width: 100%;
-    text-align: left;
-    padding: 7px 10px;
-    font-size: 12.5px;
-    border: none;
-    background: transparent;
-  }
-  .dots-menu button:hover {
-    background: var(--panel-2);
-  }
+:root {
+--bg: #121512;
+--panel: #1b201b;
+--panel-2: #242b24;
+--border: #333e33;
+--text: #e6ede6;
+--note-text: #cdd8cd;
+--muted: #93a393;
+--green: #4caf50;
+--green-hover: #43a047;
+--crit: #ef5350;
+--med: #ffb74d;
+--low: #64b5f6;
+--hover-btn: #2c352c;
+--hover-border: #556855;
+}
+body.light-theme {
+--bg: #f1f4f1;
+--panel: #ffffff;
+--panel-2: #e6ece6;
+--border: #cbd5cb;
+--text: #182018;
+--note-text: #2c382c;
+--muted: #586958;
+--green: #2e7d32;
+--green-hover: #1b5e20;
+--crit: #d32f2f;
+--med: #e65100;
+--low: #1565c0;
+--hover-btn: #dce4dc;
+--hover-border: #9eb09e;
+}
+• { box-sizing: border-box; }
+body {
+margin: 0;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+background: var(--bg);
+color: var(--text);
+line-height: 1.45;
+transition: background 0.2s, color 0.2s;
+}
+header {
+background: var(--panel);
+border-bottom: 1px solid var(--border);
+padding: 16px 24px;
+display: flex;
+flex-wrap: wrap;
+gap: 12px;
+align-items: center;
+justify-content: space-between;
+}
+.title-wrap h1 {
+margin: 0;
+font-size: 20px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.status-line {
+font-size: 12px;
+color: var(--muted);
+margin-top: 2px;
+}
+.header-actions {
+display: flex;
+gap: 8px;
+flex-wrap: wrap;
+align-items: center;
+}
+button {
+background: var(--panel-2);
+color: var(--text);
+border: 1px solid var(--border);
+padding: 8px 14px;
+border-radius: 6px;
+cursor: pointer;
+font-size: 13px;
+font-weight: 500;
+transition: 0.15s;
+}
+button:hover { border-color: var(--hover-border); background: var(--hover-btn); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.primary {
+background: var(--green);
+border-color: var(--green);
+color: #fff;
+}
+button.primary:hover { background: var(--green-hover); }
+button.edit-btn {
+color: var(--low);
+border-color: rgba(100,181,246,0.45);
+padding: 5px 9px;
+font-size: 12px;
+}
+button.edit-btn:hover { background: rgba(100,181,246,0.15); }
+button.report-btn {
+color: var(--med);
+border-color: rgba(255,183,77,0.45);
+padding: 5px 9px;
+font-size: 12px;
+}
+button.report-btn:hover { background: rgba(255,183,77,0.15); }
+button.danger {
+color: var(--crit);
+border-color: rgba(239,83,80,0.4);
+padding: 5px 9px;
+font-size: 12px;
+}
+button.danger:hover { background: rgba(239,83,80,0.15); }
+.dots-wrap {
+position: relative;
+}
+.dots-btn {
+padding: 8px 11px;
+font-size: 16px;
+line-height: 1;
+font-weight: 700;
+}
+.dots-menu {
+position: absolute;
+right: 0;
+top: calc(100% + 6px);
+background: var(--panel);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 6px;
+min-width: 185px;
+display: none;
+flex-direction: column;
+gap: 4px;
+box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+z-index: 60;
+}
+.dots-menu.open { display: flex; }
+.dots-menu button {
+width: 100%;
+text-align: left;
+padding: 7px 10px;
+font-size: 12.5px;
+border: none;
+background: transparent;
+}
+.dots-menu button:hover {
+background: var(--panel-2);
+}
+.container {
+max-width: 1150px;
+margin: 0 auto;
+padding: 20px 24px 60px;
+}
+.stats {
+display: flex;
+gap: 12px;
+flex-wrap: wrap;
+margin-bottom: 16px;
+}
+.stat-pill {
+background: var(--panel);
+border: 1px solid var(--border);
+padding: 8px 14px;
+border-radius: 8px;
+font-size: 13px;
+color: var(--muted);
+}
+.stat-pill b { color: var(--text); }
+.stat-pill.crit b { color: var(--crit); }
+.filters {
+display: grid;
+grid-template-columns: 2fr 1fr 1fr;
+gap: 10px;
+margin-bottom: 20px;
+}
+@media (max-width: 720px) {
+.filters { grid-template-columns: 1fr; }
+}
+input, select, textarea {
+width: 100%;
+background: var(--panel);
+color: var(--text);
+border: 1px solid var(--border);
+padding: 9px 12px;
+border-radius: 6px;
+font-size: 13px;
+font-family: inherit;
+}
+input:focus, select:focus, textarea:focus {
+outline: none;
+border-color: var(--green);
+}
+.grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+gap: 16px;
+}
+.card {
+position: relative;
+background: var(--panel);
+border: 1px solid var(--border);
+border-radius: 10px;
+overflow: hidden;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+transition: border-color 0.2s, box-shadow 0.2s;
+}
+.card.broken {
+border-color: var(--crit);
+box-shadow: 0 0 0 1px rgba(239, 83, 80, 0.35), 0 8px 24px rgba(239, 83, 80, 0.14);
+}
+.broken-banner {
+background: rgba(239, 83, 80, 0.16);
+border-bottom: 1px solid rgba(239, 83, 80, 0.45);
+padding: 8px 14px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 10px;
+}
+.broken-left {
+display: flex;
+align-items: center;
+gap: 9px;
+min-width: 0;
+}
+.excl-icon {
+flex-shrink: 0;
+width: 24px;
+height: 24px;
+border-radius: 50%;
+background: var(--crit);
+color: #fff;
+font-weight: 900;
+font-size: 15px;
+display: flex;
+align-items: center;
+justify-content: center;
+box-shadow: 0 0 10px rgba(239, 83, 80, 0.7);
+animation: pulseAlert 1.8s infinite;
+}
+@keyframes pulseAlert {
+0%, 100% { transform: scale(1); }
+50% { transform: scale(1.1); }
+}
+.broken-info {
+font-size: 12px;
+color: var(--crit);
+line-height: 1.3;
+}
+.broken-info b {
+color: var(--text);
+display: block;
+font-size: 12.5px;
+}
+.fix-btn {
+flex-shrink: 0;
+background: rgba(76, 175, 80, 0.2);
+border: 1px solid rgba(76, 175, 80, 0.55);
+color: var(--green);
+padding: 4px 8px;
+font-size: 11px;
+border-radius: 5px;
+cursor: pointer;
+font-weight: 600;
+}
+.fix-btn:hover {
+background: var(--green);
+color: #fff;
+}
+.card-cover {
+width: 100%;
+height: 175px;
+object-fit: cover;
+display: block;
+background: #0d100d;
+border-bottom: 1px solid var(--border);
+cursor: zoom-in;
+}
+.card-body {
+padding: 15px;
+display: flex;
+flex-direction: column;
+gap: 10px;
+flex: 1;
+}
+.card-top {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+gap: 8px;
+}
+.type-badge {
+font-size: 11px;
+text-transform: uppercase;
+letter-spacing: 0.4px;
+background: var(--panel-2);
+border: 1px solid var(--border);
+padding: 3px 8px;
+border-radius: 4px;
+color: var(--muted);
+}
+.prio-badge {
+font-size: 11px;
+font-weight: 600;
+padding: 3px 8px;
+border-radius: 4px;
+white-space: nowrap;
+}
+.prio-crit { background: rgba(239,83,80,0.16); color: var(--crit); border: 1px solid rgba(239,83,80,0.4); }
+.prio-med  { background: rgba(255,183,77,0.16); color: var(--med); border: 1px solid rgba(255,183,77,0.4); }
+.prio-low  { background: rgba(100,181,246,0.16); color: var(--low); border: 1px solid rgba(100,181,246,0.4); }
+.card h3 {
+margin: 4px 0 0;
+font-size: 17px;
+}
+.info-row {
+display: flex;
+justify-content: space-between;
+align-items: center;
+background: var(--panel-2);
+padding: 7px 10px;
+border-radius: 6px;
+font-size: 13px;
+gap: 8px;
+}
+.coords {
+font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+font-size: 12.5px;
+}
+.copy-btn {
+padding: 3px 8px;
+font-size: 11px;
+}
+.note {
+font-size: 13px;
+color: var(--note-text);
+background: rgba(128,128,128,0.06);
+border-left: 2px solid var(--border);
+padding: 6px 10px;
+border-radius: 0 4px 4px 0;
+white-space: pre-wrap;
+}
+.report-box {
+background: rgba(239, 83, 80, 0.08);
+border: 1px solid rgba(239, 83, 80, 0.35);
+border-radius: 6px;
+padding: 8px 10px;
+font-size: 12.5px;
+color: var(--text);
+}
+.report-box-title {
+font-weight: 600;
+color: var(--crit);
+margin-bottom: 4px;
+font-size: 12px;
+}
+.report-item {
+border-top: 1px dashed rgba(239, 83, 80, 0.25);
+padding-top: 4px;
+margin-top: 4px;
+white-space: pre-wrap;
+}
+.report-item:first-of-type {
+border-top: none;
+padding-top: 0;
+margin-top: 0;
+}
+.note-thumbs {
+display: flex;
+gap: 6px;
+flex-wrap: wrap;
+margin-top: 2px;
+}
+.note-thumb {
+width: 64px;
+height: 48px;
+object-fit: cover;
+border-radius: 5px;
+border: 1px solid var(--border);
+cursor: zoom-in;
+transition: 0.15s;
+}
+.note-thumb:hover { border-color: var(--green); transform: scale(1.03); }
+.card-foot {
+padding: 10px 15px;
+border-top: 1px solid var(--border);
+display: flex;
+justify-content: space-between;
+align-items: center;
+font-size: 12px;
+color: var(--muted);
+gap: 6px;
+flex-wrap: wrap;
+}
+.card-foot-actions {
+display: flex;
+gap: 5px;
+flex-wrap: wrap;
+}
+.modal-backdrop {
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.75);
+display: none;
+align-items: center;
+justify-content: center;
+padding: 16px;
+z-index: 50;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+background: var(--panel);
+border: 1px solid var(--border);
+border-radius: 10px;
+width: 100%;
+max-width: 540px;
+max-height: 92vh;
+overflow-y: auto;
+padding: 20px;
+}
+.modal.modal-sm {
+max-width: 390px;
+}
+.modal h2 { margin: 0 0 14px; font-size: 18px; }
+.form-group { margin-bottom: 12px; }
+.form-group label {
+display: block;
+font-size: 12px;
+color: var(--muted);
+margin-bottom: 4px;
+}
+.pass-row {
+display: flex;
+gap: 6px;
+}
+.pass-row input {
+flex: 1;
+}
+.pass-eye {
+padding: 0 12px;
+font-size: 15px;
+}
+.auth-err {
+color: var(--crit);
+font-size: 12px;
+margin-top: 6px;
+min-height: 16px;
+}
+.row-2 {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+}
+.row-3 {
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+gap: 8px;
+}
+.file-box {
+background: var(--panel-2);
+border: 1px dashed #4a5a4a;
+border-radius: 6px;
+padding: 12px;
+font-size: 12px;
+transition: 0.15s;
+cursor: pointer;
+}
+.file-box.dragover {
+border-color: var(--green);
+background: rgba(76, 175, 80, 0.12);
+}
+.drop-title {
+font-weight: 500;
+color: var(--text);
+margin-bottom: 2px;
+}
+.file-box input[type="file"] {
+display: none;
+}
+.preview-strip {
+display: flex;
+gap: 8px;
+flex-wrap: wrap;
+margin-top: 8px;
+}
+.preview-item {
+position: relative;
+width: 82px;
+height: 60px;
+}
+.preview-item img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+border-radius: 5px;
+border: 1px solid var(--border);
+background: #000;
+}
+.preview-del {
+position: absolute;
+top: -6px;
+right: -6px;
+background: var(--crit);
+color: #fff;
+border: none;
+border-radius: 50%;
+width: 20px;
+height: 20px;
+padding: 0;
+font-size: 12px;
+line-height: 20px;
+text-align: center;
+cursor: pointer;
+z-index: 2;
+}
+.modal-actions {
+display: flex;
+justify-content: flex-end;
+gap: 8px;
+margin-top: 16px;
+}
+.empty {
+grid-column: 1 / -1;
+text-align: center;
+padding: 40px;
+color: var(--muted);
+background: var(--panel);
+border: 1px dashed var(--border);
+border-radius: 10px;
+}
+.hint {
+font-size: 11.5px;
+color: var(--muted);
+margin-top: 2px;
+}
+.code-example {
+background: var(--panel-2);
+border: 1px solid var(--border);
+padding: 8px 10px;
+border-radius: 6px;
+font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+font-size: 11.5px;
+color: var(--text);
+margin-bottom: 10px;
+white-space: pre-wrap;
+word-break: break-word;
+}
+.lightbox {
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.88);
+display: none;
+align-items: center;
+justify-content: center;
+padding: 20px;
+z-index: 100;
+cursor: zoom-out;
+}
+.lightbox.open { display: flex; }
+.lightbox img {
+max-width: 95vw;
+max-height: 92vh;
+border-radius: 8px;
+border: 1px solid var(--border);
+box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+}
 
-  .container {
-    max-width: 1150px;
-    margin: 0 auto;
-    padding: 20px 24px 60px;
-  }
-  .stats {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-  }
-  .stat-pill {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .stat-pill b { color: var(--text); }
-  .stat-pill.crit b { color: var(--crit); }
 
-  .filters {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  @media (max-width: 720px) {
-    .filters { grid-template-columns: 1fr; }
-  }
-  input, select, textarea {
-    width: 100%;
-    background: var(--panel);
-    color: var(--text);
-    border: 1px solid var(--border);
-    padding: 9px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-family: inherit;
-  }
-  input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--green);
-  }
+⛏ Реестр ферм клана
+Синхронизация с облаком...
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 16px;
-  }
-  .card {
-    position: relative;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .card.broken {
-    border-color: var(--crit);
-    box-shadow: 0 0 0 1px rgba(239, 83, 80, 0.35), 0 8px 24px rgba(239, 83, 80, 0.14);
-  }
 
-  .broken-banner {
-    background: rgba(239, 83, 80, 0.16);
-    border-bottom: 1px solid rgba(239, 83, 80, 0.45);
-    padding: 8px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  .broken-left {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    min-width: 0;
-  }
-  .excl-icon {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--crit);
-    color: #fff;
-    font-weight: 900;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 10px rgba(239, 83, 80, 0.7);
-    animation: pulseAlert 1.8s infinite;
-  }
-  @keyframes pulseAlert {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-  }
-  .broken-info {
-    font-size: 12px;
-    color: var(--crit);
-    line-height: 1.3;
-  }
-  .broken-info b {
-    color: var(--text);
-    display: block;
-    font-size: 12.5px;
-  }
-  .fix-btn {
-    flex-shrink: 0;
-    background: rgba(76, 175, 80, 0.2);
-    border: 1px solid rgba(76, 175, 80, 0.55);
-    color: var(--green);
-    padding: 4px 8px;
-    font-size: 11px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: 600;
-  }
-  .fix-btn:hover {
-    background: var(--green);
-    color: #fff;
-  }
++ Добавить ферму
 
-  .card-cover {
-    width: 100%;
-    height: 175px;
-    object-fit: cover;
-    display: block;
-    background: #0d100d;
-    border-bottom: 1px solid var(--border);
-    cursor: zoom-in;
-  }
-  .card-body {
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    flex: 1;
-  }
-  .card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .type-badge {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    padding: 3px 8px;
-    border-radius: 4px;
-    color: var(--muted);
-  }
-  .prio-badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 4px;
-    white-space: nowrap;
-  }
-  .prio-crit { background: rgba(239,83,80,0.16); color: var(--crit); border: 1px solid rgba(239,83,80,0.4); }
-  .prio-med  { background: rgba(255,183,77,0.16); color: var(--med); border: 1px solid rgba(255,183,77,0.4); }
-  .prio-low  { background: rgba(100,181,246,0.16); color: var(--low); border: 1px solid rgba(100,181,246,0.4); }
+⋮
 
-  .card h3 {
-    margin: 4px 0 0;
-    font-size: 17px;
-  }
-  .info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--panel-2);
-    padding: 7px 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    gap: 8px;
-  }
-  .coords {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12.5px;
-  }
-  .copy-btn {
-    padding: 3px 8px;
-    font-size: 11px;
-  }
-  .note {
-    font-size: 13px;
-    color: var(--note-text);
-    background: rgba(128,128,128,0.06);
-    border-left: 2px solid var(--border);
-    padding: 6px 10px;
-    border-radius: 0 4px 4px 0;
-    white-space: pre-wrap;
-  }
-  .report-box {
-    background: rgba(239, 83, 80, 0.08);
-    border: 1px solid rgba(239, 83, 80, 0.35);
-    border-radius: 6px;
-    padding: 8px 10px;
-    font-size: 12.5px;
-    color: var(--text);
-  }
-  .report-box-title {
-    font-weight: 600;
-    color: var(--crit);
-    margin-bottom: 4px;
-    font-size: 12px;
-  }
-  .report-item {
-    border-top: 1px dashed rgba(239, 83, 80, 0.25);
-    padding-top: 4px;
-    margin-top: 4px;
-    white-space: pre-wrap;
-  }
-  .report-item:first-of-type {
-    border-top: none;
-    padding-top: 0;
-    margin-top: 0;
-  }
-  .note-thumbs {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-top: 2px;
-  }
-  .note-thumb {
-    width: 64px;
-    height: 48px;
-    object-fit: cover;
-    border-radius: 5px;
-    border: 1px solid var(--border);
-    cursor: zoom-in;
-    transition: 0.15s;
-  }
-  .note-thumb:hover { border-color: var(--green); transform: scale(1.03); }
+🌗 Сменить тему
+📥 Для Сони
+☁ Облако / Доступ
 
-  .card-foot {
-    padding: 10px 15px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-    color: var(--muted);
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .card-foot-actions {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-  }
 
-  /* Modals */
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.75);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    z-index: 50;
-  }
-  .modal-backdrop.open { display: flex; }
-  .modal {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    width: 100%;
-    max-width: 540px;
-    max-height: 92vh;
-    overflow-y: auto;
-    padding: 20px;
-  }
-  .modal h2 { margin: 0 0 14px; font-size: 18px; }
-  .form-group { margin-bottom: 12px; }
-  .form-group label {
-    display: block;
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 4px;
-  }
-  .row-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .row-3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-  }
-  .file-box {
-    background: var(--panel-2);
-    border: 1px dashed #4a5a4a;
-    border-radius: 6px;
-    padding: 12px;
-    font-size: 12px;
-    transition: 0.15s;
-    cursor: pointer;
-  }
-  .file-box.dragover {
-    border-color: var(--green);
-    background: rgba(76, 175, 80, 0.12);
-  }
-  .drop-title {
-    font-weight: 500;
-    color: var(--text);
-    margin-bottom: 2px;
-  }
-  .file-box input[type="file"] {
-    display: none;
-  }
-  .preview-strip {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 8px;
-  }
-  .preview-item {
-    position: relative;
-    width: 82px;
-    height: 60px;
-  }
-  .preview-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 5px;
-    border: 1px solid var(--border);
-    background: #000;
-  }
-  .preview-del {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    background: var(--crit);
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    padding: 0;
-    font-size: 12px;
-    line-height: 20px;
-    text-align: center;
-    cursor: pointer;
-    z-index: 2;
-  }
-  .modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 16px;
-  }
-  .empty {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 40px;
-    color: var(--muted);
-    background: var(--panel);
-    border: 1px dashed var(--border);
-    border-radius: 10px;
-  }
-  .hint {
-    font-size: 11.5px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-  .code-example {
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    padding: 8px 10px;
-    border-radius: 6px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11.5px;
-    color: var(--text);
-    margin-bottom: 10px;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
 
-  /* Встроенное окно пароля */
-  .pass-input-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  .pass-input-wrap input {
-    padding-right: 40px;
-  }
-  .pass-eye {
-    position: absolute;
-    right: 6px;
-    background: transparent;
-    border: none;
-    padding: 4px 6px;
-    font-size: 14px;
-    color: var(--muted);
-  }
-  .pass-eye:hover {
-    background: transparent;
-    color: var(--text);
-  }
-  .auth-error {
-    color: var(--crit);
-    font-size: 12px;
-    margin-top: 6px;
-    min-height: 16px;
-  }
+Всего ферм: 0
+Сломано (есть репорты): 0
+Хрупких (критичный риск поломки): 0
+Все виды ферм
+Опыт / Мобы
+Железо / Металлы
+Золото / Пиглины
+Еда / Растения
+Порох / Криперы
+Жители / Торговля
+Редстоун / Слизь
+Энд / Шалкеры
+Другое
 
-  /* Lightbox */
-  .lightbox {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.88);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 100;
-    cursor: zoom-out;
-  }
-  .lightbox.open { display: flex; }
-  .lightbox img {
-    max-width: 95vw;
-    max-height: 92vh;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-  }
-</style>
-</head>
-<body>
 
-<header>
-  <div class="title-wrap">
-    <h1>⛏ Реестр ферм клана</h1>
-    <div class="status-line" id="syncStatus">Загрузка...</div>
-  </div>
-  <div class="header-actions">
-    <button class="primary" onclick="openAddModal()">+ Добавить ферму</button>
-    <div class="dots-wrap" id="dotsWrap">
-      <button class="dots-btn" onclick="toggleDotsMenu(event)" title="Дополнительно">⋮</button>
-      <div class="dots-menu" id="dotsMenu">
-        <button onclick="toggleTheme()">🌗 Сменить тему</button>
-        <button onclick="openSonyaModal()">📥 Для Сони</button>
-        <button onclick="openCloudModal()">☁ Облако / Доступ</button>
-      </div>
-    </div>
-  </div>
-</header>
+Любой статус / риск
+❗ Сломаны (есть репорт)
+🔴 Критичный риск (ломается от дыхания)
+🟡 Средний риск (бывают сбои)
+🔵 Низкий риск (надёжная)
 
-<div class="container">
-  <div class="stats">
-    <div class="stat-pill">Всего ферм: <b id="statTotal">0</b></div>
-    <div class="stat-pill crit">Сломано (есть репорты): <b id="statBroken">0</b></div>
-    <div class="stat-pill crit">Хрупких (критичный риск поломки): <b id="statCrit">0</b></div>
-  </div>
+🔒 Подтверждение доступа
+Введите пароль клана для продолжения:
+👁
 
-  <div class="filters">
-    <input type="text" id="searchInput" placeholder="Поиск по названию, координатам, автору или примечанию..." oninput="render()">
-    <select id="typeFilter" onchange="render()">
-      <option value="">Все виды ферм</option>
-      <option>Опыт / Мобы</option>
-      <option>Железо / Металлы</option>
-      <option>Золото / Пиглины</option>
-      <option>Еда / Растения</option>
-      <option>Порох / Криперы</option>
-      <option>Жители / Торговля</option>
-      <option>Редстоун / Слизь</option>
-      <option>Энд / Шалкеры</option>
-      <option>Другое</option>
-    </select>
-    <select id="prioFilter" onchange="render()">
-      <option value="">Любой статус / риск</option>
-      <option value="broken">❗ Сломаны (есть репорт)</option>
-      <option value="crit">🔴 Критичный риск (ломается от дыхания)</option>
-      <option value="med">🟡 Средний риск (бывают сбои)</option>
-      <option value="low">🔵 Низкий риск (надёжная)</option>
-    </select>
-  </div>
 
-  <div class="grid" id="farmsGrid"></div>
-</div>
 
-<!-- Встроенное модальное окно пароля -->
-<div class="modal-backdrop" id="authModal" style="z-index: 80;">
-  <div class="modal" style="max-width: 390px;">
-    <h2 id="authTitle">🔒 Введите пароль</h2>
-    <p class="hint" id="authDesc" style="margin-top:0; margin-bottom:10px;"></p>
-    <div class="form-group">
-      <div class="pass-input-wrap">
-        <input type="password" id="authInput" placeholder="Пароль..." onkeydown="if(event.key==='Enter') confirmAuth()">
-        <button type="button" class="pass-eye" onclick="toggleAuthEye()">👁</button>
-      </div>
-      <div class="auth-error" id="authError"></div>
-    </div>
-    <div class="modal-actions">
-      <button onclick="closeAuthModal()">Отмена</button>
-      <button class="primary" onclick="confirmAuth()">Подтвердить</button>
-    </div>
-  </div>
-</div>
 
-<!-- Модальное окно «Для Сони» -->
-<div class="modal-backdrop" id="sonyaModal">
-  <div class="modal">
-    <h2>📥 Быстрая вставка фермы кодом (для Сони)</h2>
-    <p class="hint" style="margin-top:0;">Вставьте код фермы (можно сразу несколько строк подряд — каждая с новой строки):</p>
-    <div class="code-example">Формат: Название@Ресы/ч@X Y Z@Мир@Тип@Риск@Автор@Описание
-Пример: Физер розы@17к/ч@-1015 64 5771@Верхний мир@Еда / Растения@крит@parolb@Кидать зелья раз в 2 мин 50 сек</div>
-    <div class="form-group">
-      <label>Код фермы *</label>
-      <textarea id="sonyaCodeInput" rows="5" placeholder="Физер розы@17к/ч@-1015 64 5771@Верхний мир@Еда / Растения@крит@parolb@Описание..."></textarea>
-    </div>
-    <div class="modal-actions">
-      <button onclick="closeModal('sonyaModal')">Отмена</button>
-      <button class="primary" onclick="importSonyaCode()">Добавить в список</button>
-    </div>
-  </div>
-</div>
+Отмена
+Подтвердить
 
-<!-- Модальное окно добавления / редактирования фермы -->
-<div class="modal-backdrop" id="addModal">
-  <div class="modal">
-    <h2 id="modalTitle">Добавить ферму</h2>
-    <div class="row-2">
-      <div class="form-group">
-        <label>Вид фермы</label>
-        <select id="fType">
-          <option>Опыт / Мобы</option>
-          <option>Железо / Металлы</option>
-          <option>Золото / Пиглины</option>
-          <option>Еда / Растения</option>
-          <option>Порох / Криперы</option>
-          <option>Жители / Торговля</option>
-          <option>Редстоун / Слизь</option>
-          <option>Энд / Шалкеры</option>
-          <option>Другое</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Название фермы *</label>
-        <input type="text" id="fName" placeholder="Например: Ферма железа на 4 порталах">
-      </div>
-    </div>
 
-    <div class="form-group">
-      <label>Обложка фермы (необязательно)</label>
-      <div class="file-box" id="coverDropZone" onclick="document.getElementById('fCoverInput').click()">
-        <input type="file" id="fCoverInput" accept="image/*" onchange="handleCoverSelect(event)">
-        <div class="drop-title">📷 Перетащите скриншот сюда или нажмите для выбора</div>
-        <div class="hint">Картинка автоматически сожмётся для быстрой загрузки.</div>
-        <div class="preview-strip" id="coverPreview" onclick="event.stopPropagation()"></div>
-      </div>
-    </div>
+📥 Быстрая вставка фермы кодом (для Сони)
+Вставьте код фермы (можно сразу несколько строк подряд — каждая с новой строки):
+Формат: Название@Ресы/ч@X Y Z@Мир@Тип@Риск@Автор@Описание
+Пример: Физер розы@17к/ч@-1015 64 5771@Верхний мир@Еда / Растения@крит@parolb@Кидать зелья раз в 2 мин 50 сек
+Код фермы *
+Отмена
+Добавить в список
 
-    <div class="form-group">
-      <label>Мир и координаты (X / Y / Z)</label>
-      <div class="row-2" style="margin-bottom:6px;">
-        <select id="fDim">
-          <option value="Верхний мир">Верхний мир</option>
-          <option value="Незер">Незер</option>
-          <option value="Энд">Энд</option>
-        </select>
-        <input type="text" id="fAuthor" placeholder="Кто построил (ник)">
-      </div>
-      <div class="row-3">
-        <input type="number" id="fX" placeholder="X">
-        <input type="number" id="fY" placeholder="Y">
-        <input type="number" id="fZ" placeholder="Z">
-      </div>
-    </div>
 
-    <div class="row-2">
-      <div class="form-group">
-        <label>Ресы/ч *</label>
-        <input type="text" id="fRate" placeholder="Например: ~1800 слитков/ч">
-      </div>
-      <div class="form-group">
-        <label>Риск поломки (хрупкость)</label>
-        <select id="fPrio">
-          <option value="crit">Критичный (ломается от любого дыхания)</option>
-          <option value="med" selected>Средний (может сломаться при сбое/лагах)</option>
-          <option value="low">Низкий (работает как танк, почти не ломается)</option>
-        </select>
-      </div>
-    </div>
+Добавить ферму
 
-    <div class="form-group">
-      <label>Уточнения (примечание: как не сломать, где рычаг, куда вставать АФК)</label>
-      <textarea id="fNote" rows="3" placeholder="Например: Не выходить из игры в радиусе 30 блоков, сначала глушить рычагом на входе!"></textarea>
-    </div>
+Вид фермы
+Опыт / Мобы
+Железо / Металлы
+Золото / Пиглины
+Еда / Растения
+Порох / Криперы
+Жители / Торговля
+Редстоун / Слизь
+Энд / Шалкеры
+Другое
 
-    <div class="form-group">
-      <label>Фото к уточнениям (до 4 скриншотов)</label>
-      <div class="file-box" id="noteImgsDropZone" onclick="document.getElementById('fNoteImgsInput').click()">
-        <input type="file" id="fNoteImgsInput" accept="image/*" multiple onchange="handleNoteImgsSelect(event)">
-        <div class="drop-title">🖼 Перетащите до 4 фото сюда или нажмите для выбора</div>
-        <div class="preview-strip" id="noteImgsPreview" onclick="event.stopPropagation()"></div>
-      </div>
-    </div>
 
-    <div class="modal-actions">
-      <button onclick="closeModal('addModal')">Отмена</button>
-      <button class="primary" id="saveBtn" onclick="saveFarm()">Сохранить</button>
-    </div>
-  </div>
-</div>
+Название фермы *
+Обложка фермы (необязательно)
+📷 Перетащите скриншот сюда или нажмите для выбора
+Картинка автоматически сожмётся для быстрой загрузки.
 
-<!-- Модальное окно репорта о поломке -->
-<div class="modal-backdrop" id="reportModal">
-  <div class="modal">
-    <h2>🚨 Сообщить о поломке фермы</h2>
-    <p class="hint" id="reportFarmName" style="margin-top:0; font-size:13px; color:var(--text);"></p>
-    <div class="form-group">
-      <label>Ваш ник (необязательно)</label>
-      <input type="text" id="rAuthor" placeholder="Кто обнаружил поломку">
-    </div>
-    <div class="form-group">
-      <label>Что именно сломалось? *</label>
-      <textarea id="rText" rows="3" placeholder="Например: Забились воронки, умер голем или сбился таймер на поршнях..."></textarea>
-    </div>
-    <div class="modal-actions">
-      <button onclick="closeModal('reportModal')">Отмена</button>
-      <button class="primary" style="background:var(--crit); border-color:var(--crit);" onclick="submitReport()">Отправить репорт</button>
-    </div>
-  </div>
-</div>
 
-<!-- Модальное окно облака -->
-<div class="modal-backdrop" id="cloudModal">
-  <div class="modal">
-    <h2>☁ Подключение общей базы клана (JSONBin.io)</h2>
-    <p class="hint" style="margin-top:0;">
-      Настройки подключения к облачной базе клана:
-    </p>
-    <div class="form-group">
-      <label>Bin ID</label>
-      <input type="text" id="cBinId" placeholder="Например: 6b04334bac6210605a9df50d">
-    </div>
-    <div class="form-group">
-      <label>X-Master-Key (API ключ)</label>
-      <input type="password" id="cApiKey" placeholder="$2a$10$...">
-    </div>
-    <div class="modal-actions">
-      <button onclick="closeModal('cloudModal')">Закрыть</button>
-      <button class="primary" onclick="saveCloudConfig()">Применить и загрузить</button>
-    </div>
-  </div>
-</div>
+Мир и координаты (X / Y / Z)
+Верхний мир
+Незер
+Энд
 
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <img id="lightboxImg" src="" alt="Скриншот фермы">
-</div>
 
-<script>
+
+
+
+
+
+
+Ресы/ч *
+Риск поломки (хрупкость)
+Критичный (ломается от любого дыхания)
+Средний (может сломаться при сбое/лагах)
+Низкий (работает как танк, почти не ломается)
+
+
+Уточнения (примечание: как не сломать, где рычаг, куда вставать АФК)
+Фото к уточнениям (до 4 скриншотов)
+🖼 Перетащите до 4 фото сюда или нажмите для выбора
+
+
+Отмена
+Сохранить
+
+
+🚨 Сообщить о поломке фермы
+Ваш ник (необязательно)
+Что именно сломалось? *
+Отмена
+Отправить репорт
+
+
+☁ Подключение общей базы клана (JSONBin.io)
+Чтобы все участники клана видели общий список и фото: создайте бесплатный Bin (содержимое []) на jsonbin.io и впишите данные ниже.
+Bin ID
+X-Master-Key (API ключ)
+Закрыть
+Применить и загрузить
+
+
 const HARDCODED_BIN_ID = "6b04334bac6210605a9df50d";
 const HARDCODED_API_KEY = "$2a$10$8EMgJqyrObzXiPKrfmEv8ugI8z2NfLJ1pbxxofxNNe.G6n83e0Js6";
-
 const PASS_CREATE = "ROME";
-const PASS_EDIT_FIX = "ROMEFARMS";
-const PASS_CLOUD = "ROMES0fa";
-
+const PASS_MANAGE = "ROMEFARMS";
+const PASS_CLOUD  = "ROMES0fa";
 let farms = [];
 let editingFarmId = null;
 let reportingFarmId = null;
 let draftCover = "";
 let draftNoteImgs = [];
-
-let authExpectedPass = "";
-let authSuccessCallback = null;
-
-function requirePass(expectedPass, title, desc, onSuccess) {
-  authExpectedPass = expectedPass;
-  authSuccessCallback = onSuccess;
-  document.getElementById("authTitle").textContent = title;
-  document.getElementById("authDesc").textContent = desc;
-  const inp = document.getElementById("authInput");
-  inp.value = "";
-  inp.type = "password";
-  document.getElementById("authError").textContent = "";
-  document.getElementById("authModal").classList.add("open");
-  setTimeout(() => inp.focus(), 50);
-}
-
-function closeAuthModal() {
-  authExpectedPass = "";
-  authSuccessCallback = null;
-  document.getElementById("authModal").classList.remove("open");
-}
-
-function toggleAuthEye() {
-  const inp = document.getElementById("authInput");
-  inp.type = inp.type === "password" ? "text" : "password";
-  inp.focus();
-}
-
-function confirmAuth() {
-  const entered = document.getElementById("authInput").value.trim();
-  if (entered !== authExpectedPass) {
-    document.getElementById("authError").textContent = "❌ Неверный пароль! Проверьте раскладку и регистр.";
-    return;
-  }
-  const cb = authSuccessCallback;
-  closeAuthModal();
-  if (typeof cb === "function") cb();
-}
-
+let pendingAuthCallback = null;
+let expectedAuthPass = "";
 function applySavedTheme() {
-  if (localStorage.getItem("clan_theme") === "light") {
-    document.body.classList.add("light-theme");
-  }
+if (localStorage.getItem("clan_theme") === "light") {
+document.body.classList.add("light-theme");
+}
 }
 applySavedTheme();
-
 function toggleTheme() {
-  document.body.classList.toggle("light-theme");
-  const isLight = document.body.classList.contains("light-theme");
-  localStorage.setItem("clan_theme", isLight ? "light" : "dark");
-  closeDotsMenu();
+document.body.classList.toggle("light-theme");
+const isLight = document.body.classList.contains("light-theme");
+localStorage.setItem("clan_theme", isLight ? "light" : "dark");
+closeDotsMenu();
 }
-
 function toggleDotsMenu(e) {
-  e.stopPropagation();
-  document.getElementById("dotsMenu").classList.toggle("open");
+e.stopPropagation();
+document.getElementById("dotsMenu").classList.toggle("open");
 }
-
 function closeDotsMenu() {
-  document.getElementById("dotsMenu").classList.remove("open");
+document.getElementById("dotsMenu").classList.remove("open");
 }
-
 document.addEventListener("click", e => {
-  const wrap = document.getElementById("dotsWrap");
-  if (wrap && !wrap.contains(e.target)) closeDotsMenu();
+const wrap = document.getElementById("dotsWrap");
+if (wrap && !wrap.contains(e.target)) closeDotsMenu();
 });
-
+function requestPassword(expectedPass, title, desc, onSuccess) {
+expectedAuthPass = expectedPass;
+pendingAuthCallback = onSuccess;
+document.getElementById("authTitle").textContent = title || "🔒 Подтверждение доступа";
+document.getElementById("authDesc").textContent = desc || "Введите пароль:";
+const inp = document.getElementById("authPassInput");
+inp.value = "";
+inp.type = "password";
+document.getElementById("authErr").textContent = "";
+document.getElementById("authModal").classList.add("open");
+setTimeout(() => inp.focus(), 50);
+}
+function toggleAuthEye() {
+const inp = document.getElementById("authPassInput");
+inp.type = inp.type === "password" ? "text" : "password";
+inp.focus();
+}
+function confirmAuth() {
+const val = document.getElementById("authPassInput").value.trim();
+if (val !== expectedAuthPass) {
+document.getElementById("authErr").textContent = "Неверный пароль! Проверьте раскладку и регистр.";
+return;
+}
+const cb = pendingAuthCallback;
+closeAuthModal();
+if (cb) cb();
+}
+function closeAuthModal() {
+pendingAuthCallback = null;
+expectedAuthPass = "";
+document.getElementById("authModal").classList.remove("open");
+}
 function openSonyaModal() {
-  closeDotsMenu();
-  requirePass(
-    PASS_CREATE,
-    "🔒 Доступ к импорту ферм",
-    "Введите пароль для создания ферм:",
-    () => {
-      document.getElementById("sonyaCodeInput").value = "";
-      document.getElementById("sonyaModal").classList.add("open");
-    }
-  );
-}
-
-function parseCoordsString(str) {
-  const nums = (str || "").match(/-?\d+(\.\d+)?/g);
-  if (!nums || nums.length === 0) return { x: 0, y: 64, z: 0 };
-  if (nums.length === 2) return { x: Math.round(Number(nums[0])), y: 64, z: Math.round(Number(nums[1])) };
-  return { x: Math.round(Number(nums[0])), y: Math.round(Number(nums[1])), z: Math.round(Number(nums[2])) };
-}
-
-function parsePrioString(str) {
-  const s = (str || "").toLowerCase();
-  if (s.includes("крит") || s.includes("crit") || s.includes("выс")) return "crit";
-  if (s.includes("низ") || s.includes("low") || s.includes("над")) return "low";
-  return "med";
-}
-
-function parseDimString(str) {
-  const s = (str || "").toLowerCase();
-  if (s.includes("незер") || s.includes("ад") || s.includes("nether")) return "Незер";
-  if (s.includes("энд") || s.includes("край") || s.includes("end")) return "Энд";
-  return "Верхний мир";
-}
-
-async function importSonyaCode() {
-  const raw = document.getElementById("sonyaCodeInput").value.trim();
-  if (!raw) {
-    alert("Вставьте хотя бы одну строку с кодом фермы!");
-    return;
-  }
-
-  const lines = raw.split(/
-?
-/).map(l => l.trim()).filter(Boolean);
-  let addedCount = 0;
-
-  lines.forEach((line, idx) => {
-    const parts = line.split("@").map(p => p.trim());
-    if (parts.length < 2) return;
-
-    const name = parts[0] || "Без названия";
-    const rate = parts[1] || "Не указано";
-    const coords = parseCoordsString(parts[2] || "");
-
-    let dim = "Верхний мир";
-    let type = "Другое";
-    let prio = "med";
-    let author = "Не указан";
-    let note = "";
-
-    if (parts.length <= 4) {
-      note = parts[3] || "";
-    } else {
-      dim = parseDimString(parts[3]);
-      type = parts[4] || "Другое";
-      prio = parsePrioString(parts[5]);
-      author = parts[6] || "Не указан";
-      note = parts.slice(7).join("@");
-    }
-
-    farms.unshift({
-      id: Date.now() + idx,
-      type,
-      name,
-      dim,
-      x: coords.x,
-      y: coords.y,
-      z: coords.z,
-      rate,
-      prio,
-      note,
-      author,
-      cover: "",
-      noteImgs: [],
-      reports: []
-    });
-    addedCount++;
-  });
-
-  if (!addedCount) {
-    alert("Не удалось распознать код. Используйте разделитель @ (например: Физер розы@17к/ч@-1015 64 5771@Описание)");
-    return;
-  }
-
-  closeModal("sonyaModal");
-  await pushFarms();
-}
-
-function getConfig() {
-  return {
-    binId: localStorage.getItem("clan_bin_id") || HARDCODED_BIN_ID,
-    apiKey: localStorage.getItem("clan_api_key") || HARDCODED_API_KEY
-  };
-}
-
-function updateStatus(text, isError = false) {
-  const el = document.getElementById("syncStatus");
-  el.textContent = text;
-  el.style.color = isError ? "var(--crit)" : "var(--muted)";
-}
-
-function setupDropZone(zoneId, onFilesDropped) {
-  const zone = document.getElementById(zoneId);
-  if (!zone) return;
-  ["dragenter", "dragover"].forEach(ev => {
-    zone.addEventListener(ev, e => {
-      e.preventDefault();
-      e.stopPropagation();
-      zone.classList.add("dragover");
-    });
-  });
-  ["dragleave", "drop"].forEach(ev => {
-    zone.addEventListener(ev, e => {
-      e.preventDefault();
-      e.stopPropagation();
-      zone.classList.remove("dragover");
-    });
-  });
-  zone.addEventListener("drop", e => {
-    if (e.dataTransfer && e.dataTransfer.files.length) {
-      onFilesDropped(e.dataTransfer.files);
-    }
-  });
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  setupDropZone("coverDropZone", files => processCoverFile(files[0]));
-  setupDropZone("noteImgsDropZone", files => processNoteImgFiles(files));
+closeDotsMenu();
+requestPassword(PASS_CREATE, "📥 Доступ для Сони", "Введите пароль для добавления ферм:", () => {
+document.getElementById("sonyaCodeInput").value = "";
+document.getElementById("sonyaModal").classList.add("open");
 });
-
+}
+function parseCoordsString(str) {
+const nums = (str || "").match(/-?\d+(.\d+)?/g);
+if (!nums || nums.length === 0) return { x: 0, y: 64, z: 0 };
+if (nums.length === 2) return { x: Math.round(Number(nums[0])), y: 64, z: Math.round(Number(nums[1])) };
+return { x: Math.round(Number(nums[0])), y: Math.round(Number(nums[1])), z: Math.round(Number(nums[2])) };
+}
+function parsePrioString(str) {
+const s = (str || "").toLowerCase();
+if (s.includes("крит") || s.includes("crit") || s.includes("выс")) return "crit";
+if (s.includes("низ") || s.includes("low") || s.includes("над")) return "low";
+return "med";
+}
+function parseDimString(str) {
+const s = (str || "").toLowerCase();
+if (s.includes("незер") || s.includes("ад") || s.includes("nether")) return "Незер";
+if (s.includes("энд") || s.includes("край") || s.includes("end")) return "Энд";
+return "Верхний мир";
+}
+async function importSonyaCode() {
+const raw = document.getElementById("sonyaCodeInput").value.trim();
+if (!raw) {
+alert("Вставьте хотя бы одну строку с кодом фермы!");
+return;
+}
+const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+let addedCount = 0;
+lines.forEach((line, idx) => {
+const parts = line.split("@").map(p => p.trim());
+if (parts.length < 2) return;
+const name = parts[0] || "Без названия";
+const rate = parts[1] || "Не указано";
+const coords = parseCoordsString(parts[2] || "");
+let dim = "Верхний мир";
+let type = "Другое";
+let prio = "med";
+let author = "Не указан";
+let note = "";
+if (parts.length <= 4) {
+note = parts[3] || "";
+} else {
+dim = parseDimString(parts[3]);
+type = parts[4] || "Другое";
+prio = parsePrioString(parts[5]);
+author = parts[6] || "Не указан";
+note = parts.slice(7).join("@");
+}
+farms.unshift({
+id: Date.now() + idx,
+type,
+name,
+dim,
+x: coords.x,
+y: coords.y,
+z: coords.z,
+rate,
+prio,
+note,
+author,
+cover: "",
+noteImgs: [],
+reports: []
+});
+addedCount++;
+});
+if (!addedCount) {
+alert("Не удалось распознать код. Используйте разделитель @ (например: Физер розы@17к/ч@-1015 64 5771@Описание)");
+return;
+}
+closeModal("sonyaModal");
+await pushFarms();
+}
+function getConfig() {
+return {
+binId: localStorage.getItem("clan_bin_id") || HARDCODED_BIN_ID,
+apiKey: localStorage.getItem("clan_api_key") || HARDCODED_API_KEY
+};
+}
+function updateStatus(text, isError = false) {
+const el = document.getElementById("syncStatus");
+el.textContent = text;
+el.style.color = isError ? "var(--crit)" : "var(--muted)";
+}
+function setupDropZone(zoneId, onFilesDropped) {
+const zone = document.getElementById(zoneId);
+if (!zone) return;
+["dragenter", "dragover"].forEach(ev => {
+zone.addEventListener(ev, e => {
+e.preventDefault();
+e.stopPropagation();
+zone.classList.add("dragover");
+});
+});
+["dragleave", "drop"].forEach(ev => {
+zone.addEventListener(ev, e => {
+e.preventDefault();
+e.stopPropagation();
+zone.classList.remove("dragover");
+});
+});
+zone.addEventListener("drop", e => {
+if (e.dataTransfer && e.dataTransfer.files.length) {
+onFilesDropped(e.dataTransfer.files);
+}
+});
+}
+window.addEventListener("DOMContentLoaded", () => {
+setupDropZone("coverDropZone", files => processCoverFile(files[0]));
+setupDropZone("noteImgsDropZone", files => processNoteImgFiles(files));
+});
 function compressImage(file, maxW, quality) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = new Image();
-      img.onload = () => {
-        let w = img.width;
-        let h = img.height;
-        if (w > maxW) {
-          h = Math.round(h * (maxW / w));
-          w = maxW;
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL("image/jpeg", quality));
-      };
-      img.onerror = reject;
-      img.src = e.target.result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+return new Promise((resolve, reject) => {
+const reader = new FileReader();
+reader.onload = e => {
+const img = new Image();
+img.onload = () => {
+let w = img.width;
+let h = img.height;
+if (w > maxW) {
+h = Math.round(h * (maxW / w));
+w = maxW;
 }
-
+const canvas = document.createElement("canvas");
+canvas.width = w;
+canvas.height = h;
+const ctx = canvas.getContext("2d");
+ctx.drawImage(img, 0, 0, w, h);
+resolve(canvas.toDataURL("image/jpeg", quality));
+};
+img.onerror = reject;
+img.src = e.target.result;
+};
+reader.onerror = reject;
+reader.readAsDataURL(file);
+});
+}
 async function processCoverFile(file) {
-  if (!file || !file.type.startsWith("image/")) return;
-  draftCover = await compressImage(file, 850, 0.72);
-  renderDraftPreviews();
+if (!file || !file.type.startsWith("image/")) return;
+draftCover = await compressImage(file, 850, 0.72);
+renderDraftPreviews();
 }
-
 function handleCoverSelect(e) {
-  processCoverFile(e.target.files[0]);
+processCoverFile(e.target.files[0]);
 }
-
 async function processNoteImgFiles(fileList) {
-  const files = Array.from(fileList)
-    .filter(f => f.type.startsWith("image/"))
-    .slice(0, 4 - draftNoteImgs.length);
-  for (const f of files) {
-    const dataUrl = await compressImage(f, 750, 0.68);
-    draftNoteImgs.push(dataUrl);
-  }
-  renderDraftPreviews();
+const files = Array.from(fileList)
+.filter(f => f.type.startsWith("image/"))
+.slice(0, 4 - draftNoteImgs.length);
+for (const f of files) {
+const dataUrl = await compressImage(f, 750, 0.68);
+draftNoteImgs.push(dataUrl);
 }
-
+renderDraftPreviews();
+}
 function handleNoteImgsSelect(e) {
-  processNoteImgFiles(e.target.files);
-  e.target.value = "";
+processNoteImgFiles(e.target.files);
+e.target.value = "";
 }
-
 function removeDraftCover() {
-  draftCover = "";
-  document.getElementById("fCoverInput").value = "";
-  renderDraftPreviews();
+draftCover = "";
+document.getElementById("fCoverInput").value = "";
+renderDraftPreviews();
 }
-
 function removeDraftNoteImg(idx) {
-  draftNoteImgs.splice(idx, 1);
-  renderDraftPreviews();
+draftNoteImgs.splice(idx, 1);
+renderDraftPreviews();
 }
-
 function renderDraftPreviews() {
-  const cWrap = document.getElementById("coverPreview");
-  cWrap.innerHTML = draftCover
-    ? `<div class="preview-item"><img src="${draftCover}"><button type="button" class="preview-del" onclick="removeDraftCover()">×</button></div>`
-    : "";
-
-  const nWrap = document.getElementById("noteImgsPreview");
-  nWrap.innerHTML = draftNoteImgs.map((src, i) =>
-    `<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="removeDraftNoteImg(${i})">×</button></div>`
-  ).join("");
+const cWrap = document.getElementById("coverPreview");
+cWrap.innerHTML = draftCover
+? <div class="preview-item"><img src="${draftCover}"><button type="button" class="preview-del" onclick="removeDraftCover()">×</button></div>
+: "";
+const nWrap = document.getElementById("noteImgsPreview");
+nWrap.innerHTML = draftNoteImgs.map((src, i) =>
+<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="removeDraftNoteImg(${i})">×</button></div>
+).join("");
 }
-
 async function loadFarms() {
-  const cfg = getConfig();
-  if (!cfg.binId || !cfg.apiKey) {
-    const saved = localStorage.getItem("clan_farms_local");
-    farms = saved ? JSON.parse(saved) : [];
-    updateStatus("Режим: Локальное хранение (нажмите ⋮ → «Облако»)");
-    render();
-    return;
-  }
-
-  try {
-    updateStatus("Синхронизация с облаком...");
-    const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}/latest`, {
-      headers: { "X-Master-Key": cfg.apiKey }
-    });
-    if (!res.ok) throw new Error("Ошибка доступа к Bin (" + res.status + ")");
-    const data = await res.json();
-    farms = Array.isArray(data.record) ? data.record : [];
-    updateStatus("Режим: Общая база клана подключена ✓");
-    render();
-  } catch (e) {
-    updateStatus("Ошибка облака: " + e.message, true);
-  }
+const cfg = getConfig();
+if (!cfg.binId || !cfg.apiKey) {
+const saved = localStorage.getItem("clan_farms_local");
+farms = saved ? JSON.parse(saved) : [];
+updateStatus("Режим: Локальное хранение (откройте ⋮ → Облако для общей базы)");
+render();
+return;
 }
-
+try {
+updateStatus("Синхронизация с облаком...");
+const res = await fetch(https://jsonbin.io{cfg.binId}/latest, {
+headers: { "X-Master-Key": cfg.apiKey }
+});
+if (!res.ok) throw new Error("Ошибка доступа к Bin (" + res.status + ")");
+const data = await res.json();
+farms = Array.isArray(data.record) ? data.record : [];
+updateStatus("Режим: Общая база клана подключена ✓");
+render();
+} catch (e) {
+updateStatus("Ошибка облака: " + e.message, true);
+}
+}
 async function pushFarms() {
-  const cfg = getConfig();
-  if (!cfg.binId || !cfg.apiKey) {
-    try {
-      localStorage.setItem("clan_farms_local", JSON.stringify(farms));
-    } catch (err) {
-      alert("Память браузера переполнена из-за фото!");
-    }
-    render();
-    return;
-  }
-
-  try {
-    updateStatus("Сохранение в облако...");
-    const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Master-Key": cfg.apiKey
-      },
-      body: JSON.stringify(farms)
-    });
-    if (!res.ok) throw new Error("Не удалось сохранить (" + res.status + ")");
-    updateStatus("Сохранено в общую базу клана ✓");
-    render();
-  } catch (e) {
-    updateStatus("Ошибка сохранения: " + e.message, true);
-  }
+const cfg = getConfig();
+if (!cfg.binId || !cfg.apiKey) {
+try {
+localStorage.setItem("clan_farms_local", JSON.stringify(farms));
+} catch (err) {
+alert("Память браузера переполнена из-за фото!");
 }
-
+render();
+return;
+}
+try {
+updateStatus("Сохранение в облако...");
+const res = await fetch(https://jsonbin.io{cfg.binId}, {
+method: "PUT",
+headers: {
+"Content-Type": "application/json",
+"X-Master-Key": cfg.apiKey
+},
+body: JSON.stringify(farms)
+});
+if (!res.ok) throw new Error("Не удалось сохранить (" + res.status + ")");
+updateStatus("Сохранено в общую базу клана ✓");
+render();
+} catch (e) {
+updateStatus("Ошибка сохранения: " + e.message, true);
+}
+}
 function resetFormFields() {
-  document.getElementById("fType").selectedIndex = 0;
-  document.getElementById("fName").value = "";
-  document.getElementById("fDim").value = "Верхний мир";
-  document.getElementById("fAuthor").value = "";
-  document.getElementById("fX").value = "";
-  document.getElementById("fY").value = "";
-  document.getElementById("fZ").value = "";
-  document.getElementById("fRate").value = "";
-  document.getElementById("fPrio").value = "med";
-  document.getElementById("fNote").value = "";
-  draftCover = "";
-  draftNoteImgs = [];
-  document.getElementById("fCoverInput").value = "";
-  document.getElementById("fNoteImgsInput").value = "";
-  renderDraftPreviews();
+document.getElementById("fType").selectedIndex = 0;
+document.getElementById("fName").value = "";
+document.getElementById("fDim").value = "Верхний мир";
+document.getElementById("fAuthor").value = "";
+document.getElementById("fX").value = "";
+document.getElementById("fY").value = "";
+document.getElementById("fZ").value = "";
+document.getElementById("fRate").value = "";
+document.getElementById("fPrio").value = "med";
+document.getElementById("fNote").value = "";
+draftCover = "";
+draftNoteImgs = [];
+document.getElementById("fCoverInput").value = "";
+document.getElementById("fNoteImgsInput").value = "";
+renderDraftPreviews();
 }
-
 function openAddModal() {
-  requirePass(
-    PASS_CREATE,
-    "🔒 Создание новой фермы",
-    "Введите пароль для добавления фермы:",
-    () => {
-      editingFarmId = null;
-      document.getElementById("modalTitle").textContent = "Добавить ферму";
-      document.getElementById("saveBtn").textContent = "Сохранить";
-      resetFormFields();
-      document.getElementById("addModal").classList.add("open");
-    }
-  );
+requestPassword(PASS_CREATE, "➕ Добавление фермы", "Введите пароль для создания фермы:", () => {
+editingFarmId = null;
+document.getElementById("modalTitle").textContent = "Добавить ферму";
+document.getElementById("saveBtn").textContent = "Сохранить";
+resetFormFields();
+document.getElementById("addModal").classList.add("open");
+});
 }
-
 function openEditModal(id) {
-  const farm = farms.find(f => f.id === id);
-  if (!farm) return;
-
-  requirePass(
-    PASS_EDIT_FIX,
-    "🔒 Редактирование фермы",
-    "Введите пароль для изменения фермы:",
-    () => {
-      editingFarmId = id;
-      document.getElementById("modalTitle").textContent = "Редактировать ферму";
-      document.getElementById("saveBtn").textContent = "Сохранить изменения";
-
-      document.getElementById("fType").value = farm.type || "Опыт / Мобы";
-      document.getElementById("fName").value = farm.name || "";
-      document.getElementById("fDim").value = farm.dim || "Верхний мир";
-      document.getElementById("fAuthor").value = farm.author === "Не указан" ? "" : (farm.author || "");
-      document.getElementById("fX").value = farm.x ?? "";
-      document.getElementById("fY").value = farm.y ?? "";
-      document.getElementById("fZ").value = farm.z ?? "";
-      document.getElementById("fRate").value = farm.rate || "";
-      document.getElementById("fPrio").value = farm.prio || "med";
-      document.getElementById("fNote").value = farm.note || "";
-
-      draftCover = farm.cover || "";
-      draftNoteImgs = Array.isArray(farm.noteImgs) ? farm.noteImgs.slice() : [];
-
-      document.getElementById("fCoverInput").value = "";
-      document.getElementById("fNoteImgsInput").value = "";
-
-      renderDraftPreviews();
-      document.getElementById("addModal").classList.add("open");
-    }
-  );
+requestPassword(PASS_MANAGE, "✏️ Редактирование фермы", "Введите пароль администратора для редактирования:", () => {
+const farm = farms.find(f => f.id === id);
+if (!farm) return;
+editingFarmId = id;
+document.getElementById("modalTitle").textContent = "Редактировать ферму";
+document.getElementById("saveBtn").textContent = "Сохранить изменения";
+document.getElementById("fType").value = farm.type || "Опыт / Мобы";
+document.getElementById("fName").value = farm.name || "";
+document.getElementById("fDim").value = farm.dim || "Верхний мир";
+document.getElementById("fAuthor").value = farm.author === "Не указан" ? "" : (farm.author || "");
+document.getElementById("fX").value = farm.x ?? "";
+document.getElementById("fY").value = farm.y ?? "";
+document.getElementById("fZ").value = farm.z ?? "";
+document.getElementById("fRate").value = farm.rate || "";
+document.getElementById("fPrio").value = farm.prio || "med";
+document.getElementById("fNote").value = farm.note || "";
+draftCover = farm.cover || "";
+draftNoteImgs = Array.isArray(farm.noteImgs) ? farm.noteImgs.slice() : [];
+document.getElementById("fCoverInput").value = "";
+document.getElementById("fNoteImgsInput").value = "";
+renderDraftPreviews();
+document.getElementById("addModal").classList.add("open");
+});
 }
-
 function openCloudModal() {
-  closeDotsMenu();
-  requirePass(
-    PASS_CLOUD,
-    "☁ Доступ к настройкам облака",
-    "Введите пароль администратора облака:",
-    () => {
-      const cfg = getConfig();
-      document.getElementById("cBinId").value = cfg.binId;
-      document.getElementById("cApiKey").value = cfg.apiKey;
-      document.getElementById("cloudModal").classList.add("open");
-    }
-  );
+closeDotsMenu();
+requestPassword(PASS_CLOUD, "☁ Вход в облако", "Введите пароль от настроек облака:", () => {
+const cfg = getConfig();
+document.getElementById("cBinId").value = cfg.binId;
+document.getElementById("cApiKey").value = cfg.apiKey;
+document.getElementById("cloudModal").classList.add("open");
+});
 }
-
 function closeModal(id) {
-  editingFarmId = null;
-  reportingFarmId = null;
-  document.getElementById(id).classList.remove("open");
+editingFarmId = null;
+reportingFarmId = null;
+document.getElementById(id).classList.remove("open");
 }
-
 function saveCloudConfig() {
-  localStorage.setItem("clan_bin_id", document.getElementById("cBinId").value.trim());
-  localStorage.setItem("clan_api_key", document.getElementById("cApiKey").value.trim());
-  closeModal("cloudModal");
-  loadFarms();
-}
-
-async function saveFarm() {
-  const name = document.getElementById("fName").value.trim();
-  const rate = document.getElementById("fRate").value.trim();
-  if (!name || !rate) {
-    alert("Заполните название фермы и ресы/ч!");
-    return;
-  }
-
-  const existingFarm = editingFarmId !== null ? farms.find(f => f.id === editingFarmId) : null;
-
-  const itemData = {
-    id: editingFarmId !== null ? editingFarmId : Date.now(),
-    type: document.getElementById("fType").value,
-    name,
-    dim: document.getElementById("fDim").value,
-    x: document.getElementById("fX").value || 0,
-    y: document.getElementById("fY").value || 64,
-    z: document.getElementById("fZ").value || 0,
-    rate,
-    prio: document.getElementById("fPrio").value,
-    note: document.getElementById("fNote").value.trim(),
-    author: document.getElementById("fAuthor").value.trim() || "Не указан",
-    cover: draftCover,
-    noteImgs: draftNoteImgs.slice(),
-    reports: existingFarm && Array.isArray(existingFarm.reports) ? existingFarm.reports : []
-  };
-
-  if (editingFarmId !== null) {
-    const idx = farms.findIndex(f => f.id === editingFarmId);
-    if (idx !== -1) {
-      farms[idx] = itemData;
-    }
-  } else {
-    farms.unshift(itemData);
-  }
-
-  editingFarmId = null;
-  resetFormFields();
-  closeModal("addModal");
-  await pushFarms();
-}
-
-function openReportModal(id) {
-  const farm = farms.find(f => f.id === id);
-  if (!farm) return;
-  reportingFarmId = id;
-  document.getElementById("reportFarmName").textContent = `Ферма: ${farm.name}`;
-  document.getElementById("rAuthor").value = "";
-  document.getElementById("rText").value = "";
-  document.getElementById("reportModal").classList.add("open");
-}
-
-async function submitReport() {
-  const text = document.getElementById("rText").value.trim();
-  if (!text) {
-    alert("Опишите, что именно сломалось!");
-    return;
-  }
-  const author = document.getElementById("rAuthor").value.trim() || "Игрок";
-  const idx = farms.findIndex(f => f.id === reportingFarmId);
-  if (idx === -1) return;
-
-  if (!Array.isArray(farms[idx].reports)) {
-    farms[idx].reports = [];
-  }
-
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) + " " +
-                  now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-
-  farms[idx].reports.push({
-    author,
-    text,
-    date: dateStr
-  });
-
-  reportingFarmId = null;
-  closeModal("reportModal");
-  await pushFarms();
-}
-
-function clearReports(id) {
-  requirePass(
-    PASS_EDIT_FIX,
-    "✓ Снятие метки поломки",
-    "Введите пароль для подтверждения ремонта:",
-    async () => {
-      const idx = farms.findIndex(f => f.id === id);
-      if (idx === -1) return;
-      farms[idx].reports = [];
-      await pushFarms();
-    }
-  );
-}
-
-function deleteFarm(id) {
-  requirePass(
-    PASS_EDIT_FIX,
-    "🗑 Удаление фермы",
-    "Введите пароль для удаления фермы из реестра:",
-    async () => {
-      farms = farms.filter(f => f.id !== id);
-      await pushFarms();
-    }
-  );
-}
-
-function copyCoords(text, btn) {
-  navigator.clipboard.writeText(text);
-  const old = btn.textContent;
-  btn.textContent = "Скопировано!";
-  setTimeout(() => btn.textContent = old, 1200);
-}
-
-function openLightbox(src) {
-  document.getElementById("lightboxImg").src = src;
-  document.getElementById("lightbox").classList.add("open");
-}
-
-function closeLightbox() {
-  document.getElementById("lightbox").classList.remove("open");
-}
-
-function esc(str) {
-  return String(str).replace(/[&<>"']/g, s => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  }[s]));
-}
-
-function render() {
-  const q = document.getElementById("searchInput").value.toLowerCase();
-  const tf = document.getElementById("typeFilter").value;
-  const pf = document.getElementById("prioFilter").value;
-
-  document.getElementById("statTotal").textContent = farms.length;
-  document.getElementById("statBroken").textContent = farms.filter(f => Array.isArray(f.reports) && f.reports.length > 0).length;
-  document.getElementById("statCrit").textContent = farms.filter(f => f.prio === "crit").length;
-
-  const prioMap = {
-    crit: { text: "🔴 Критичный риск поломки", cls: "prio-crit" },
-    med:  { text: "🟡 Средний риск поломки", cls: "prio-med" },
-    low:  { text: "🔵 Надёжная (низкий риск)", cls: "prio-low" }
-  };
-
-  const filtered = farms.filter(f => {
-    const hasReports = Array.isArray(f.reports) && f.reports.length > 0;
-    if (tf && f.type !== tf) return false;
-    if (pf === "broken" && !hasReports) return false;
-    if (pf && pf !== "broken" && f.prio !== pf) return false;
-    const hay = `${f.name} ${f.type} ${f.dim} ${f.x} ${f.y} ${f.z} ${f.note} ${f.author}`.toLowerCase();
-    return hay.includes(q);
-  });
-
-  const grid = document.getElementById("farmsGrid");
-  if (!filtered.length) {
-    grid.innerHTML = `<div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму», чтобы создать первую запись.</div>`;
-    return;
-  }
-
-  grid.innerHTML = filtered.map(f => {
-    const p = prioMap[f.prio] || prioMap.low;
-    const coordStr = `${f.x} ${f.y} ${f.z}`;
-    const reports = Array.isArray(f.reports) ? f.reports : [];
-    const isBroken = reports.length > 0;
-
-    const brokenBannerHtml = isBroken
-      ? `<div class="broken-banner">
-           <div class="broken-left">
-             <div class="excl-icon">!</div>
-             <div class="broken-info">
-               <b>ТРЕБУЕТСЯ РЕМОНТ (${reports.length})</b>
-               <span>Ферма сломана! Смотрите репорт ниже.</span>
-             </div>
-           </div>
-           <button class="fix-btn" onclick="clearReports(${f.id})">✓ Починили</button>
-         </div>`
-      : "";
-
-    const reportsBoxHtml = isBroken
-      ? `<div class="report-box">
-           <div class="report-box-title">🚨 Репорты о поломке:</div>
-           ${reports.map(r => `<div class="report-item"><b>${esc(r.author)}</b> (${esc(r.date || "")}): ${esc(r.text)}</div>`).join("")}
-         </div>`
-      : "";
-
-    const coverHtml = f.cover
-      ? `<img class="card-cover" src="${f.cover}" alt="Обложка" onclick="openLightbox('${f.cover}')">`
-      : "";
-    const noteImgsHtml = (Array.isArray(f.noteImgs) && f.noteImgs.length)
-      ? `<div class="note-thumbs">${f.noteImgs.map(src => `<img class="note-thumb" src="${src}" alt="Фото уточнения" onclick="openLightbox('${src}')">`).join("")}</div>`
-      : "";
-
-    return `
-      <div class="card ${isBroken ? "broken" : ""}">
-        ${brokenBannerHtml}
-        ${coverHtml}
-        <div class="card-body">
-          <div>
-            <div class="card-top">
-              <span class="type-badge">${esc(f.type)}</span>
-              <span class="prio-badge ${p.cls}">${p.text}</span>
-            </div>
-            <h3>${esc(f.name)}</h3>
-          </div>
-          ${reportsBoxHtml}
-          <div class="info-row">
-            <span>🌍 ${esc(f.dim)}: <b class="coords">${esc(coordStr)}</b></span>
-            <button class="copy-btn" onclick="copyCoords('${esc(coordStr)}', this)">Копировать</button>
-          </div>
-          <div class="info-row">
-            <span>⚡ Ресы/ч:</span>
-            <b>${esc(f.rate)}</b>
-          </div>
-          ${f.note ? `<div class="note">${esc(f.note)}</div>` : ""}
-          ${noteImgsHtml}
-        </div>
-        <div class="card-foot">
-          <span>Построил: <b>${esc(f.author)}</b></span>
-          <div class="card-foot-actions">
-            <button class="report-btn" onclick="openReportModal(${f.id})">⚠ Репорт</button>
-            <button class="edit-btn" onclick="openEditModal(${f.id})">Редактировать</button>
-            <button class="danger" onclick="deleteFarm(${f.id})">Удалить</button>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
-}
-
+localStorage.setItem("clan_bin_id", document.getElementById("cBinId").value.trim());
+localStorage.setItem("clan_api_key", document.getElementById("cApiKey").value.trim());
+closeModal("cloudModal");
 loadFarms();
-</script>
-</body>
-</html>
+}
+async function saveFarm() {
+const name = document.getElementById("fName").value.trim();
+const rate = document.getElementById("fRate").value.trim();
+if (!name || !rate) {
+alert("Заполните название фермы и ресы/ч!");
+return;
+}
+const existingFarm = editingFarmId !== null ? farms.find(f => f.id === editingFarmId) : null;
+const itemData = {
+id: editingFarmId !== null ? editingFarmId : Date.now(),
+type: document.getElementById("fType").value,
+name,
+dim: document.getElementById("fDim").value,
+x: document.getElementById("fX").value || 0,
+y: document.getElementById("fY").value || 64,
+z: document.getElementById("fZ").value || 0,
+rate,
+prio: document.getElementById("fPrio").value,
+note: document.getElementById("fNote").value.trim(),
+author: document.getElementById("fAuthor").value.trim() || "Не указан",
+cover: draftCover,
+noteImgs: draftNoteImgs.slice(),
+reports: existingFarm && Array.isArray(existingFarm.reports) ? existingFarm.reports : []
+};
+if (editingFarmId !== null) {
+const idx = farms.findIndex(f => f.id === editingFarmId);
+if (idx !== -1) {
+farms[idx] = itemData;
+}
+} else {
+farms.unshift(itemData);
+}
+editingFarmId = null;
+resetFormFields();
+closeModal("addModal");
+await pushFarms();
+}
+function openReportModal(id) {
+const farm = farms.find(f => f.id === id);
+if (!farm) return;
+reportingFarmId = id;
+document.getElementById("reportFarmName").textContent = Ферма: ${farm.name};
+document.getElementById("rAuthor").value = "";
+document.getElementById("rText").value = "";
+document.getElementById("reportModal").classList.add("open");
+}
+async function submitReport() {
+const text = document.getElementById("rText").value.trim();
+if (!text) {
+alert("Опишите, что именно сломалось!");
+return;
+}
+const author = document.getElementById("rAuthor").value.trim() || "Игрок";
+const idx = farms.findIndex(f => f.id === reportingFarmId);
+if (idx === -1) return;
+if (!Array.isArray(farms[idx].reports)) {
+farms[idx].reports = [];
+}
+const now = new Date();
+const dateStr = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) + " " +
+now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+farms[idx].reports.push({
+author,
+text,
+date: dateStr
+});
+reportingFarmId = null;
+closeModal("reportModal");
+await pushFarms();
+}
+function clearReports(id) {
+requestPassword(PASS_MANAGE, "🛠 Снятие метки поломки", "Введите пароль для подтверждения починки:", async () => {
+const idx = farms.findIndex(f => f.id === id);
+if (idx === -1) return;
+farms[idx].reports = [];
+await pushFarms();
+});
+}
+function deleteFarm(id) {
+requestPassword(PASS_MANAGE, "🗑 Удаление фермы", "Введите пароль для удаления карточки:", async () => {
+if (!confirm("Точно удалить эту ферму из списка клана?")) return;
+farms = farms.filter(f => f.id !== id);
+await pushFarms();
+});
+}
+function copyCoords(text, btn) {
+navigator.clipboard.writeText(text);
+const old = btn.textContent;
+btn.textContent = "Скопировано!";
+setTimeout(() => btn.textContent = old, 1200);
+}
+function openLightbox(src) {
+document.getElementById("lightboxImg").src = src;
+document.getElementById("lightbox").classList.add("open");
+}
+function closeLightbox() {
+document.getElementById("lightbox").classList.remove("open");
+}
+function esc(str) {
+return String(str).replace(/[&<>"']/g, s => ({
+"&": "&", "<": "<", ">": ">", '"': """, "'": "'"
+}[s]));
+}
+function render() {
+const q = document.getElementById("searchInput").value.toLowerCase();
+const tf = document.getElementById("typeFilter").value;
+const pf = document.getElementById("prioFilter").value;
+document.getElementById("statTotal").textContent = farms.length;
+document.getElementById("statBroken").textContent = farms.filter(f => Array.isArray(f.reports) && f.reports.length > 0).length;
+document.getElementById("statCrit").textContent = farms.filter(f => f.prio === "crit").length;
+const prioMap = {
+crit: { text: "🔴 Критичный риск поломки", cls: "prio-crit" },
+med:  { text: "🟡 Средний риск поломки", cls: "prio-med" },
+low:  { text: "🔵 Надёжная (низкий риск)", cls: "prio-low" }
+};
+const filtered = farms.filter(f => {
+const hasReports = Array.isArray(f.reports) && f.reports.length > 0;
+if (tf && f.type !== tf) return false;
+if (pf === "broken" && !hasReports) return false;
+if (pf && pf !== "broken" && f.prio !== pf) return false;
+const hay = ${f.name} ${f.type} ${f.dim} ${f.x} ${f.y} ${f.z} ${f.note} ${f.author}.toLowerCase();
+return hay.includes(q);
+});
+const grid = document.getElementById("farmsGrid");
+if (!filtered.length) {
+grid.innerHTML = <div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму», чтобы создать первую запись.</div>;
+return;
+}
+grid.innerHTML = filtered.map(f => {
+const p = prioMap[f.prio] || prioMap.low;
+const coordStr = ${f.x} ${f.y} ${f.z};
+const reports = Array.isArray(f.reports) ? f.reports : [];
+const isBroken = reports.length > 0;
+const brokenBannerHtml = isBroken
+? <div class="broken-banner"> <div class="broken-left"> <div class="excl-icon">!</div> <div class="broken-info"> <b>ТРЕБУЕТСЯ РЕМОНТ (${reports.length})</b> <span>Ферма сломана! Смотрите репорт ниже.</span> </div> </div> <button class="fix-btn" onclick="clearReports(${f.id})">✓ Починили</button> </div>
+: "";
+const reportsBoxHtml = isBroken
+? <div class="report-box"> <div class="report-box-title">🚨 Репорты о поломке:</div> ${reports.map(r => ${esc(r.author)} (\({esc(r.date \vert{}\vert{} "")}): \){esc(r.text)}).join("")} </div>
+: "";
+const coverHtml = f.cover
+? <img class="card-cover" src="${f.cover}" alt="Обложка" onclick="openLightbox('${f.cover}')">
+: "";
+const noteImgsHtml = (Array.isArray(f.noteImgs) && f.noteImgs.length)
+? <div class="note-thumbs">${f.noteImgs.map(src => ).join("")}</div>
+: "";
+return <div class="card ${isBroken ? "broken" : ""}"> ${brokenBannerHtml} ${coverHtml} <div class="card-body"> <div> <div class="card-top"> <span class="type-badge">${esc(f.type)}</span> <span class="prio-badge ${p.cls}">${p.text}</span> </div> <h3>${esc(f.name)}</h3> </div> ${reportsBoxHtml} <div class="info-row"> <span>🌍 ${esc(f.dim)}: <b class="coords">${esc(coordStr)}</b></span> <button class="copy-btn" onclick="copyCoords('${esc(coordStr)}', this)">Копировать</button> </div> <div class="info-row"> <span>⚡ Ресы/ч:</span> <b>${esc(f.rate)}</b> </div> ${f.note ?${esc(f.note)}: ""} ${noteImgsHtml} </div> <div class="card-foot"> <span>Построил: <b>${esc(f.author)}</b></span> <div class="card-foot-actions"> <button class="report-btn" onclick="openReportModal(${f.id})">⚠ Репорт</button> <button class="edit-btn" onclick="openEditModal(${f.id})">Редактировать</button> <button class="danger" onclick="deleteFarm(${f.id})">Удалить</button> </div> </div> </div>;
+}).join("");
+}
+loadFarms();
