@@ -106,7 +106,7 @@
   .pass-eye { padding: 0 12px; font-size: 15px; }
   .auth-err { color: var(--crit); font-size: 12px; margin-top: 6px; min-height: 16px; }
 
-  .file-box { background: var(--panel-2); border: 1px dashed #4a5a4a; border-radius: 6px; padding: 12px; font-size: 12px; transition: .15s; cursor: pointer; }
+  .file-box { display: block; background: var(--panel-2); border: 1px dashed #4a5a4a; border-radius: 6px; padding: 12px; font-size: 12px; transition: .15s; cursor: pointer; }
   .file-box.dragover { border-color: var(--green); background: rgba(76,175,80,.12); }
   .file-box input { display: none; }
   .preview-strip { margin-top: 8px; }
@@ -208,12 +208,12 @@
 
     <div class="form-group">
       <label>Обложка фермы (необязательно)</label>
-      <div class="file-box" id="coverDropZone" onclick="$('fCoverInput').click()">
+      <label class="file-box" id="coverDropZone" for="fCoverInput">
         <input type="file" id="fCoverInput" accept="image/*" onchange="handleCover(event)">
         <div><b>📷 Перетащите скриншот сюда или нажмите для выбора</b></div>
         <div class="hint">Картинка автоматически сожмётся.</div>
-        <div class="preview-strip" id="coverPreview" onclick="event.stopPropagation()"></div>
-      </div>
+        <div class="preview-strip" id="coverPreview" onclick="event.preventDefault(); event.stopPropagation();"></div>
+      </label>
     </div>
 
     <div class="form-group">
@@ -252,11 +252,11 @@
 
     <div class="form-group">
       <label>Фото к уточнениям (до 4 скриншотов)</label>
-      <div class="file-box" id="noteImgsDropZone" onclick="$('fNoteImgsInput').click()">
+      <label class="file-box" id="noteImgsDropZone" for="fNoteImgsInput">
         <input type="file" id="fNoteImgsInput" accept="image/*" multiple onchange="handleNoteImgs(event)">
         <div><b>🖼 Перетащите до 4 фото сюда или нажмите для выбора</b></div>
-        <div class="preview-strip" id="noteImgsPreview" onclick="event.stopPropagation()"></div>
-      </div>
+        <div class="preview-strip" id="noteImgsPreview" onclick="event.preventDefault(); event.stopPropagation();"></div>
+      </label>
     </div>
 
     <div class="modal-actions">
@@ -381,10 +381,14 @@
     const z = $(id);
     ["dragenter", "dragover"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add("dragover"); }));
     ["dragleave", "drop"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove("dragover"); }));
-    z.addEventListener("drop", e => e.dataTransfer?.files.length && fn(e.dataTransfer.files));
+    z.addEventListener("drop", e => {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        fn(e.dataTransfer.files);
+      }
+    });
   }
-  bindDrop("coverDropZone", f => setCover(f[0]));
-  bindDrop("noteImgsDropZone", f => addNoteImgs(f));
+  bindDrop("coverDropZone", files => setCover(files[0]));
+  bindDrop("noteImgsDropZone", files => addNoteImgs(files));
 
   function compress(file, maxW, q) {
     return new Promise((res, rej) => {
@@ -409,20 +413,47 @@
     draftCover = await compress(file, 850, 0.72);
     renderPreviews();
   }
-  function handleCover(e) { setCover(e.target.files[0]); }
+  function handleCover(e) {
+    if (e.target.files && e.target.files[0]) {
+      setCover(e.target.files[0]);
+      e.target.value = "";
+    }
+  }
 
   async function addNoteImgs(list) {
     const files = Array.from(list).filter(f => f.type.startsWith("image/")).slice(0, 4 - draftImgs.length);
-    for (const f of files) draftImgs.push(await compress(f, 750, 0.68));
+    for (const f of files) {
+      draftImgs.push(await compress(f, 750, 0.68));
+    }
     renderPreviews();
   }
-  function handleNoteImgs(e) { addNoteImgs(e.target.files); e.target.value = ""; }
+  function handleNoteImgs(e) {
+    if (e.target.files && e.target.files.length) {
+      addNoteImgs(e.target.files);
+      e.target.value = "";
+    }
+  }
+
+  function removeDraftCover(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    draftCover = "";
+    $("fCoverInput").value = "";
+    renderPreviews();
+  }
+
+  function removeDraftImg(e, i) {
+    e.preventDefault();
+    e.stopPropagation();
+    draftImgs.splice(i, 1);
+    renderPreviews();
+  }
 
   function renderPreviews() {
     $("coverPreview").innerHTML = draftCover
-      ? `<div class="preview-item"><img src="${draftCover}"><button type="button" class="preview-del" onclick="draftCover='';$('fCoverInput').value='';renderPreviews()">×</button></div>` : "";
+      ? `<div class="preview-item"><img src="${draftCover}"><button type="button" class="preview-del" onclick="removeDraftCover(event)">×</button></div>` : "";
     $("noteImgsPreview").innerHTML = draftImgs.map((src, i) =>
-      `<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="draftImgs.splice(${i},1);renderPreviews()">×</button></div>`
+      `<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="removeDraftImg(event, ${i})">×</button></div>`
     ).join("");
   }
 
