@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
+<head>Ф
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Фермы клана — Minecraft</title>
@@ -18,12 +18,12 @@
     --med: #e65100; --low: #1565c0; --hover-btn: #dce4dc; --hover-border: #9eb09e;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.45; transition: .2s; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.45; transition: background .2s, color .2s; }
   header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
   .title-wrap h1 { margin: 0; font-size: 20px; display: flex; align-items: center; gap: 8px; }
   .status-line { font-size: 12px; color: var(--muted); margin-top: 2px; }
   .header-actions, .stats, .card-foot-actions, .pass-row, .preview-strip, .note-thumbs, .modal-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  
+
   button { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: .15s; }
   button:hover { border-color: var(--hover-border); background: var(--hover-btn); }
   button.primary { background: var(--green); border-color: var(--green); color: #fff; }
@@ -84,7 +84,7 @@
   .coords { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
   .copy-btn { padding: 3px 8px; font-size: 11px; }
   .note { font-size: 13px; color: var(--note-text); background: rgba(128,128,128,.06); border-left: 2px solid var(--border); padding: 6px 10px; border-radius: 0 4px 4px 0; white-space: pre-wrap; }
-  
+
   .report-box { background: rgba(239,83,80,.08); border: 1px solid rgba(239,83,80,.35); border-radius: 6px; padding: 8px 10px; font-size: 12.5px; }
   .report-box-title { font-weight: 600; color: var(--crit); margin-bottom: 4px; font-size: 12px; }
   .report-item { border-top: 1px dashed rgba(239,83,80,.25); padding-top: 4px; margin-top: 4px; white-space: pre-wrap; }
@@ -118,425 +118,549 @@
   .hint { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
   .code-example { background: var(--panel-2); border: 1px solid var(--border); padding: 8px 10px; border-radius: 6px; font-family: monospace; font-size: 11.5px; margin-bottom: 10px; white-space: pre-wrap; word-break: break-word; }
 
-.lightbox { z-index: 100; background: rgba(0,0,0,.88); cursor: zoom-out; }
-.lightbox img { max-width: 95vw; max-height: 92vh; border-radius: 8px; border: 1px solid var(--border); }
+  .lightbox { z-index: 100; background: rgba(0,0,0,.88); cursor: zoom-out; }
+  .lightbox img { max-width: 95vw; max-height: 92vh; border-radius: 8px; border: 1px solid var(--border); }
+</style>
+</head>
+<body>
 
+<header>
+  <div class="title-wrap">
+    <h1>⛏ Реестр ферм клана</h1>
+    <div class="status-line" id="syncStatus">Загрузка...</div>
+  </div>
+  <div class="header-actions">
+    <button type="button" class="primary" onclick="openAddModal()">+ Добавить ферму</button>
+    <div class="dots-wrap" id="dotsWrap">
+      <button type="button" class="dots-btn" onclick="toggleDots(event)" title="Дополнительно">⋮</button>
+      <div class="dots-menu" id="dotsMenu">
+        <button type="button" onclick="toggleTheme()">🌗 Сменить тему</button>
+        <button type="button" onclick="openSonyaModal()">📥 Для Сони</button>
+        <button type="button" onclick="openCloudModal()">☁ Облако / Доступ</button>
+      </div>
+    </div>
+  </div>
+</header>
 
-⛏ Реестр ферм клана
-Загрузка...
+<div class="container">
+  <div class="stats">
+    <div class="stat-pill">Всего ферм: <b id="statTotal">0</b></div>
+    <div class="stat-pill crit">Сломано (репорты): <b id="statBroken">0</b></div>
+    <div class="stat-pill crit">Хрупких (крит. риск): <b id="statCrit">0</b></div>
+  </div>
 
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Поиск по названию, координатам, автору или примечанию..." oninput="render()">
+    <select id="typeFilter" onchange="render()"></select>
+    <select id="prioFilter" onchange="render()">
+      <option value="">Любой статус / риск</option>
+      <option value="broken">❗ Сломаны (есть репорт)</option>
+      <option value="crit">🔴 Критичный риск (ломается от дыхания)</option>
+      <option value="med">🟡 Средний риск (бывают сбои)</option>
+      <option value="low">🔵 Низкий риск (надёжная)</option>
+    </select>
+  </div>
 
-+ Добавить ферму
+  <div class="grid" id="farmsGrid"></div>
+</div>
 
-⋮
+<div class="modal-backdrop" id="authModal" style="z-index:80;">
+  <div class="modal modal-sm">
+    <h2 id="authTitle">🔒 Подтверждение доступа</h2>
+    <p class="hint" id="authDesc" style="margin:0 0 10px;"></p>
+    <div class="form-group">
+      <div class="pass-row">
+        <input type="password" id="authPassInput" placeholder="Пароль..." onkeydown="if(event.key==='Enter') confirmAuth()">
+        <button type="button" class="pass-eye" onclick="toggleEye()">👁</button>
+      </div>
+      <div class="auth-err" id="authErr"></div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" onclick="closeModal('authModal')">Отмена</button>
+      <button type="button" class="primary" onclick="confirmAuth()">Подтвердить</button>
+    </div>
+  </div>
+</div>
 
-🌗 Сменить тему
-📥 Для Сони
-☁ Облако / Доступ
+<div class="modal-backdrop" id="sonyaModal">
+  <div class="modal">
+    <h2>📥 Быстрая вставка фермы кодом (для Сони)</h2>
+    <p class="hint" style="margin-top:0;">Вставьте код фермы (каждая с новой строки):</p>
+    <div class="code-example">Формат: Название@Ресы/ч@X Y Z@Мир@Тип@Риск@Автор@Описание
+Пример: Физер розы@17к/ч@-1015 64 5771@Верхний мир@Еда / Растения@крит@parolb@Кидать зелья раз в 2 мин 50 сек</div>
+    <div class="form-group">
+      <textarea id="sonyaCodeInput" rows="5" placeholder="Физер розы@17к/ч@-1015 64 5771@Верхний мир@Еда / Растения@крит@parolb@Описание..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button type="button" onclick="closeModal('sonyaModal')">Отмена</button>
+      <button type="button" class="primary" onclick="importSonyaCode()">Добавить в список</button>
+    </div>
+  </div>
+</div>
 
+<div class="modal-backdrop" id="addModal">
+  <div class="modal">
+    <h2 id="modalTitle">Добавить ферму</h2>
+    <div class="row-2">
+      <div class="form-group"><label>Вид фермы</label><select id="fType"></select></div>
+      <div class="form-group"><label>Название фермы *</label><input type="text" id="fName" placeholder="Например: Ферма железа"></div>
+    </div>
 
+    <div class="form-group">
+      <label>Обложка фермы (необязательно)</label>
+      <div class="file-box" id="coverDropZone" onclick="$('fCoverInput').click()">
+        <input type="file" id="fCoverInput" accept="image/*" onchange="handleCover(event)">
+        <div><b>📷 Перетащите скриншот сюда или нажмите для выбора</b></div>
+        <div class="hint">Картинка автоматически сожмётся.</div>
+        <div class="preview-strip" id="coverPreview" onclick="event.stopPropagation()"></div>
+      </div>
+    </div>
 
-Всего ферм: 0
-Сломано (репорты): 0
-Хрупких (крит. риск): 0
-Любой статус / риск
-❗ Сломаны (есть репорт)
-🔴 Критичный риск (ломается от дыхания)
-🟡 Средний риск (бывают сбои)
-🔵 Низкий риск (надёжная)
+    <div class="form-group">
+      <label>Мир и координаты (X / Y / Z)</label>
+      <div class="row-2" style="margin-bottom:6px;">
+        <select id="fDim">
+          <option value="Верхний мир">Верхний мир</option>
+          <option value="Незер">Незер</option>
+          <option value="Энд">Энд</option>
+        </select>
+        <input type="text" id="fAuthor" placeholder="Кто построил (ник)">
+      </div>
+      <div class="row-3">
+        <input type="number" id="fX" placeholder="X">
+        <input type="number" id="fY" placeholder="Y">
+        <input type="number" id="fZ" placeholder="Z">
+      </div>
+    </div>
 
-🔒 Подтверждение доступа
-👁
+    <div class="row-2">
+      <div class="form-group"><label>Ресы/ч *</label><input type="text" id="fRate" placeholder="Например: ~1800 слитков/ч"></div>
+      <div class="form-group">
+        <label>Риск поломки (хрупкость)</label>
+        <select id="fPrio">
+          <option value="crit">Критичный (ломается от любого дыхания)</option>
+          <option value="med" selected>Средний (может сломаться при сбое/лагах)</option>
+          <option value="low">Низкий (работает как танк, почти не ломается)</option>
+        </select>
+      </div>
+    </div>
 
+    <div class="form-group">
+      <label>Уточнения (примечание: как не сломать, где рычаг, куда вставать АФК)</label>
+      <textarea id="fNote" rows="3" placeholder="Например: Не выходить из игры в радиусе 30 блоков!"></textarea>
+    </div>
 
+    <div class="form-group">
+      <label>Фото к уточнениям (до 4 скриншотов)</label>
+      <div class="file-box" id="noteImgsDropZone" onclick="$('fNoteImgsInput').click()">
+        <input type="file" id="fNoteImgsInput" accept="image/*" multiple onchange="handleNoteImgs(event)">
+        <div><b>🖼 Перетащите до 4 фото сюда или нажмите для выбора</b></div>
+        <div class="preview-strip" id="noteImgsPreview" onclick="event.stopPropagation()"></div>
+      </div>
+    </div>
 
+    <div class="modal-actions">
+      <button type="button" onclick="closeModal('addModal')">Отмена</button>
+      <button type="button" class="primary" id="saveBtn" onclick="saveFarm()">Сохранить</button>
+    </div>
+  </div>
+</div>
 
-Отмена
-Подтвердить
+<div class="modal-backdrop" id="reportModal">
+  <div class="modal">
+    <h2>🚨 Сообщить о поломке фермы</h2>
+    <p class="hint" id="reportFarmName" style="margin-top:0; font-size:13px; color:var(--text);"></p>
+    <div class="form-group"><label>Ваш ник (необязательно)</label><input type="text" id="rAuthor" placeholder="Кто обнаружил поломку"></div>
+    <div class="form-group"><label>Что именно сломалось? *</label><textarea id="rText" rows="3" placeholder="Опишите поломку..."></textarea></div>
+    <div class="modal-actions">
+      <button type="button" onclick="closeModal('reportModal')">Отмена</button>
+      <button type="button" class="primary" style="background:var(--crit); border-color:var(--crit);" onclick="submitReport()">Отправить репорт</button>
+    </div>
+  </div>
+</div>
 
+<div class="modal-backdrop" id="cloudModal">
+  <div class="modal">
+    <h2>☁ Подключение общей базы клана (JSONBin.io)</h2>
+    <p class="hint" style="margin-top:0;">Настройки подключения к <b>jsonbin.io</b> и пароль на создание ферм:</p>
+    <div class="form-group"><label>Bin ID</label><input type="text" id="cBinId"></div>
+    <div class="form-group"><label>X-Master-Key (API ключ)</label><input type="password" id="cApiKey"></div>
+    <div class="form-group"><label>Пароль на создание ферм</label><input type="text" id="cPass" placeholder="ROME"></div>
+    <div class="modal-actions">
+      <button type="button" onclick="closeModal('cloudModal')">Закрыть</button>
+      <button type="button" class="primary" onclick="saveCloudConfig()">Применить и загрузить</button>
+    </div>
+  </div>
+</div>
 
-📥 Быстрая вставка фермы кодом (для Сони)
-Вставьте код фермы (каждая с новой строки):
-Формат: Название@Ресы/ч@X Y Z@Мир@Тип@Риск@Автор@Описание
-Пример: Физер розы@17к/ч@-1015 64 5771@Верхний мир@Еда / Растения@крит@parolb@Кидать зелья раз в 2 мин 50 сек
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lightboxImg" src="" alt="Скриншот">
+</div>
 
+<script>
+  const DEF_BIN = "6b04334bac6210605a9df50d";
+  const DEF_KEY = "$2a$10$8EMgJqyrObzXiPKrfmEv8ugI8z2NfLJ1pbxxofxNNe.G6n83e0Js6";
+  const PASS_CLOUD = "ROMES0fa";
+  const PASS_CREATE = "ROME";
+  const PASS_ADMIN = "ROMEFARMS";
 
+  const FARM_TYPES = [
+    "Опыт / Мобы", "Железо / Металлы", "Золото / Пиглины", "Еда / Растения",
+    "Порох / Криперы", "Жители / Торговля", "Редстоун / Слизь", "Энд / Шалкеры", "Другое"
+  ];
 
+  const $ = id => document.getElementById(id);
+  let farms = [], editId = null, reportId = null, draftCover = "", draftImgs = [], authCb = null, authExp = "";
 
-Отмена
-Добавить в список
+  if (localStorage.getItem("clan_pass") && localStorage.getItem("clan_pass") !== PASS_CREATE) {
+    localStorage.removeItem("clan_pass");
+  }
+  if (localStorage.getItem("clan_theme") === "light") document.body.classList.add("light-theme");
 
+  $("typeFilter").innerHTML = `<option value="">Все виды ферм</option>` + FARM_TYPES.map(t => `<option>${t}</option>`).join("");
+  $("fType").innerHTML = FARM_TYPES.map(t => `<option>${t}</option>`).join("");
 
-Добавить ферму
+  function getCfg() {
+    return {
+      binId: localStorage.getItem("clan_bin_id") || DEF_BIN,
+      apiKey: localStorage.getItem("clan_api_key") || DEF_KEY,
+      createPass: localStorage.getItem("clan_pass") || PASS_CREATE
+    };
+  }
 
-Вид фермы
-Название фермы *
-Обложка фермы (необязательно)
-📷 Перетащите скриншот сюда или нажмите для выбора
-Картинка автоматически сожмётся.
+  function setStatus(txt, err = false) {
+    const el = $("syncStatus");
+    el.textContent = txt;
+    el.style.color = err ? "var(--crit)" : "var(--muted)";
+  }
 
+  function toggleTheme() {
+    document.body.classList.toggle("light-theme");
+    localStorage.setItem("clan_theme", document.body.classList.contains("light-theme") ? "light" : "dark");
+    $("dotsMenu").classList.remove("open");
+  }
 
-Мир и координаты (X / Y / Z)
-Верхний мир
-Незер
-Энд
+  function toggleDots(e) { e.stopPropagation(); $("dotsMenu").classList.toggle("open"); }
+  document.addEventListener("click", e => { if (!$("dotsWrap").contains(e.target)) $("dotsMenu").classList.remove("open"); });
 
+  function openModal(id) { $(id).classList.add("open"); }
+  function closeModal(id) {
+    if (id === "addModal") editId = null;
+    if (id === "reportModal") reportId = null;
+    if (id === "authModal") { authCb = null; authExp = ""; }
+    $(id).classList.remove("open");
+  }
 
+  function askPass(pass, title, desc, cb) {
+    if (!pass) return cb();
+    authExp = pass; authCb = cb;
+    $("authTitle").textContent = title;
+    $("authDesc").textContent = desc;
+    $("authPassInput").value = "";
+    $("authPassInput").type = "password";
+    $("authErr").textContent = "";
+    openModal("authModal");
+    setTimeout(() => $("authPassInput").focus(), 50);
+  }
+  function toggleEye() {
+    const inp = $("authPassInput");
+    inp.type = inp.type === "password" ? "text" : "password";
+    inp.focus();
+  }
+  function confirmAuth() {
+    if ($("authPassInput").value.trim() !== authExp) {
+      $("authErr").textContent = "Неверный пароль! Проверьте раскладку и регистр.";
+      return;
+    }
+    const cb = authCb;
+    closeModal("authModal");
+    if (cb) cb();
+  }
 
+  function bindDrop(id, fn) {
+    const z = $(id);
+    ["dragenter", "dragover"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add("dragover"); }));
+    ["dragleave", "drop"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove("dragover"); }));
+    z.addEventListener("drop", e => e.dataTransfer && e.dataTransfer.files.length && fn(e.dataTransfer.files));
+  }
+  bindDrop("coverDropZone", f => setCover(f[0]));
+  bindDrop("noteImgsDropZone", f => addNoteImgs(f));
 
+  function compress(file, maxW, q) {
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if (w > maxW) { h = Math.round(h * (maxW / w)); w = maxW; }
+          const c = Object.assign(document.createElement("canvas"), { width: w, height: h });
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          res(c.toDataURL("image/jpeg", q));
+        };
+        img.onerror = rej; img.src = e.target.result;
+      };
+      r.onerror = rej; r.readAsDataURL(file);
+    });
+  }
 
+  async function setCover(file) {
+    if (!file || !file.type.startsWith("image/")) return;
+    draftCover = await compress(file, 850, 0.72);
+    renderPreviews();
+  }
+  function handleCover(e) { setCover(e.target.files[0]); }
 
+  async function addNoteImgs(list) {
+    const files = Array.from(list).filter(f => f.type.startsWith("image/")).slice(0, 4 - draftImgs.length);
+    for (const f of files) draftImgs.push(await compress(f, 750, 0.68));
+    renderPreviews();
+  }
+  function handleNoteImgs(e) { addNoteImgs(e.target.files); e.target.value = ""; }
 
+  function renderPreviews() {
+    $("coverPreview").innerHTML = draftCover
+      ? `<div class="preview-item"><img src="${draftCover}"><button type="button" class="preview-del" onclick="draftCover='';$('fCoverInput').value='';renderPreviews()">×</button></div>` : "";
+    $("noteImgsPreview").innerHTML = draftImgs.map((src, i) =>
+      `<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="draftImgs.splice(${i},1);renderPreviews()">×</button></div>`
+    ).join("");
+  }
 
-Ресы/ч *
-Риск поломки (хрупкость)
-Критичный (ломается от любого дыхания)
-Средний (может сломаться при сбое/лагах)
-Низкий (работает как танк, почти не ломается)
+  async function syncCloud(method = "GET") {
+    const { binId, apiKey } = getCfg();
+    if (!binId || !apiKey) {
+      if (method === "GET") farms = JSON.parse(localStorage.getItem("clan_farms_local") || "[]");
+      else localStorage.setItem("clan_farms_local", JSON.stringify(farms));
+      setStatus("Режим: Локальное хранение (⋮ → Облако для общей базы)");
+      return render();
+    }
+    try {
+      setStatus(method === "GET" ? "Синхронизация с облаком..." : "Сохранение в облако...");
+      const url = `https://api.jsonbin.io/v3/b/${binId}${method === "GET" ? "/latest" : ""}`;
+      const opt = { method, headers: { "X-Master-Key": apiKey } };
+      if (method === "PUT") { opt.headers["Content-Type"] = "application/json"; opt.body = JSON.stringify(farms); }
+      const res = await fetch(url, opt);
+      if (!res.ok) throw new Error(`Код ответа ${res.status}`);
+      if (method === "GET") {
+        const data = await res.json();
+        farms = Array.isArray(data.record) ? data.record : [];
+      }
+      setStatus(method === "GET" ? "Режим: Общая база клана подключена ✓" : "Сохранено в общую базу клана ✓");
+      render();
+    } catch (e) {
+      setStatus("Ошибка облака: " + e.message, true);
+    }
+  }
 
+  function openAddModal() {
+    askPass(getCfg().createPass, "➕ Создание фермы", "Введите пароль для добавления фермы:", () => {
+      editId = null;
+      $("modalTitle").textContent = "Добавить ферму";
+      $("saveBtn").textContent = "Сохранить";
+      ["fName", "fAuthor", "fX", "fY", "fZ", "fRate", "fNote", "fCoverInput", "fNoteImgsInput"].forEach(id => $(id).value = "");
+      $("fType").selectedIndex = 0; $("fDim").value = "Верхний мир"; $("fPrio").value = "med";
+      draftCover = ""; draftImgs = []; renderPreviews();
+      openModal("addModal");
+    });
+  }
 
-Уточнения (как не сломать, где рычаг, куда вставать АФК)
-Фото к уточнениям (до 4 скриншотов)
-🖼 Перетащите до 4 фото сюда или нажмите для выбора
+  function openEditModal(id) {
+    askPass(PASS_ADMIN, "✏️ Редактирование фермы", "Введите пароль администратора:", () => {
+      const f = farms.find(x => String(x.id) === String(id));
+      if (!f) return;
+      editId = f.id;
+      $("modalTitle").textContent = "Редактировать ферму";
+      $("saveBtn").textContent = "Сохранить изменения";
+      $("fType").value = f.type || FARM_TYPES[0];
+      $("fName").value = f.name || "";
+      $("fDim").value = f.dim || "Верхний мир";
+      $("fAuthor").value = f.author === "Не указан" ? "" : (f.author || "");
+      $("fX").value = f.x ?? ""; $("fY").value = f.y ?? ""; $("fZ").value = f.z ?? "";
+      $("fRate").value = f.rate || ""; $("fPrio").value = f.prio || "med"; $("fNote").value = f.note || "";
+      draftCover = f.cover || "";
+      draftImgs = Array.isArray(f.noteImgs) ? [...f.noteImgs] : [];
+      $("fCoverInput").value = ""; $("fNoteImgsInput").value = "";
+      renderPreviews();
+      openModal("addModal");
+    });
+  }
 
+  async function saveFarm() {
+    const name = $("fName").value.trim(), rate = $("fRate").value.trim();
+    if (!name || !rate) return alert("Заполните название фермы и ресы/ч!");
+    const old = editId !== null ? farms.find(x => String(x.id) === String(editId)) : null;
+    const item = {
+      id: editId !== null ? editId : Date.now(),
+      type: $("fType").value, name, dim: $("fDim").value,
+      x: $("fX").value || 0, y: $("fY").value || 64, z: $("fZ").value || 0,
+      rate, prio: $("fPrio").value, note: $("fNote").value.trim(),
+      author: $("fAuthor").value.trim() || "Не указан",
+      cover: draftCover, noteImgs: [...draftImgs],
+      reports: Array.isArray(old && old.reports) ? old.reports : []
+    };
+    if (editId !== null) {
+      const idx = farms.findIndex(x => String(x.id) === String(editId));
+      if (idx !== -1) farms[idx] = item;
+    } else {
+      farms.unshift(item);
+    }
+    closeModal("addModal");
+    await syncCloud("PUT");
+  }
 
-Отмена
-Сохранить
+  function openSonyaModal() {
+    $("dotsMenu").classList.remove("open");
+    askPass(getCfg().createPass, "📥 Доступ для Сони", "Введите пароль для добавления ферм:", () => {
+      $("sonyaCodeInput").value = "";
+      openModal("sonyaModal");
+    });
+  }
 
+  async function importSonyaCode() {
+    const lines = $("sonyaCodeInput").value.trim().split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (!lines.length) return alert("Вставьте хотя бы одну строку с кодом фермы!");
+    let count = 0;
+    lines.forEach((line, idx) => {
+      const p = line.split("@").map(s => s.trim());
+      if (p.length < 2) return;
+      const nums = (p[2] || "").match(/-?\d+(\.\d+)?/g) || [];
+      const [x, y, z] = nums.length === 2 ? [Math.round(Number(nums[0])), 64, Math.round(Number(nums[1]))]
+        : nums.length >= 3 ? [Math.round(Number(nums[0])), Math.round(Number(nums[1])), Math.round(Number(nums[2]))] : [0, 64, 0];
+      const d = (p[3] || "").toLowerCase(), pr = (p[5] || "").toLowerCase();
+      farms.unshift({
+        id: Date.now() + idx,
+        name: p[0] || "Без названия", rate: p[1] || "Не указано", x, y, z,
+        dim: p.length <= 4 ? "Верхний мир" : d.includes("незер") || d.includes("ад") ? "Незер" : d.includes("энд") ? "Энд" : "Верхний мир",
+        type: p.length <= 4 ? "Другое" : (p[4] || "Другое"),
+        prio: p.length <= 4 ? "med" : pr.includes("крит") ? "crit" : pr.includes("низ") ? "low" : "med",
+        author: p.length <= 4 ? "Не указан" : (p[6] || "Не указан"),
+        note: p.length <= 4 ? (p[3] || "") : p.slice(7).join("@"),
+        cover: "", noteImgs: [], reports: []
+      });
+      count++;
+    });
+    if (!count) return alert("Не удалось распознать код. Используйте разделитель @");
+    closeModal("sonyaModal");
+    await syncCloud("PUT");
+  }
 
-🚨 Сообщить о поломке фермы
-Ваш ник (необязательно)
-Что именно сломалось? *
+  function openReportModal(id) {
+    const f = farms.find(x => String(x.id) === String(id));
+    if (!f) return;
+    reportId = f.id;
+    $("reportFarmName").textContent = `Ферма: ${f.name}`;
+    $("rAuthor").value = ""; $("rText").value = "";
+    openModal("reportModal");
+  }
 
-Отмена
-Отправить репорт
+  async function submitReport() {
+    const text = $("rText").value.trim();
+    if (!text) return alert("Опишите, что именно сломалось!");
+    const idx = farms.findIndex(x => String(x.id) === String(reportId));
+    if (idx === -1) return;
+    if (!Array.isArray(farms[idx].reports)) farms[idx].reports = [];
+    const now = new Date();
+    const date = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) + " " + now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    farms[idx].reports.push({ author: $("rAuthor").value.trim() || "Игрок", text, date });
+    closeModal("reportModal");
+    await syncCloud("PUT");
+  }
 
+  function clearReports(id) {
+    askPass(PASS_ADMIN, "🛠 Снятие репорта", "Введите пароль администратора:", async () => {
+      const idx = farms.findIndex(x => String(x.id) === String(id));
+      if (idx !== -1) { farms[idx].reports = []; await syncCloud("PUT"); }
+    });
+  }
 
-☁ Подключение общей базы клана (JSONBin.io)
-Настройки подключения к jsonbin.io и пароль на создание ферм:
-Bin ID
-X-Master-Key (API ключ)
-Пароль на создание ферм
+  function deleteFarm(id) {
+    askPass(PASS_ADMIN, "🗑 Удаление фермы", "Введите пароль администратора для удаления:", async () => {
+      if (!confirm("Точно удалить эту ферму из списка клана?")) return;
+      farms = farms.filter(x => String(x.id) !== String(id));
+      await syncCloud("PUT");
+    });
+  }
 
-Закрыть
-Применить и загрузить
+  function openCloudModal() {
+    $("dotsMenu").classList.remove("open");
+    askPass(PASS_CLOUD, "☁ Вход в настройки облака", "Введите пароль доступа к облаку:", () => {
+      const cfg = getCfg();
+      $("cBinId").value = cfg.binId; $("cApiKey").value = cfg.apiKey; $("cPass").value = cfg.createPass;
+      openModal("cloudModal");
+    });
+  }
+  function saveCloudConfig() {
+    localStorage.setItem("clan_bin_id", $("cBinId").value.trim());
+    localStorage.setItem("clan_api_key", $("cApiKey").value.trim());
+    localStorage.setItem("clan_pass", $("cPass").value.trim());
+    closeModal("cloudModal");
+    syncCloud("GET");
+  }
 
+  const esc = s => String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  const openLightbox = src => { $("lightboxImg").src = src; openModal("lightbox"); };
+  function copyCoords(txt, btn) {
+    navigator.clipboard.writeText(txt);
+    const old = btn.textContent; btn.textContent = "Скопировано!";
+    setTimeout(() => btn.textContent = old, 1200);
+  }
 
-const DEF_BIN = "6b04334bac6210605a9df50d";
-const DEF_KEY = "$2a$10$8EMgJqyrObzXiPKrfmEv8ugI8z2NfLJ1pbxxofxNNe.G6n83e0Js6";
-const PASS_CLOUD = "ROMES0fa";   // Вход в настройки облака
-const PASS_CREATE = "ROME";      // Создание ферм (+ Добавить / Для Сони)
-const PASS_ADMIN = "ROMEFARMS";  // Редактирование, удаление ферм и репортов
-const FARM_TYPES = [
-"Опыт / Мобы", "Железо / Металлы", "Золото / Пиглины", "Еда / Растения",
-"Порох / Криперы", "Жители / Торговля", "Редстоун / Слизь", "Энд / Шалкеры", "Другое"
-];
-const $ = id => document.getElementById(id);
-let farms = [], editId = null, reportId = null, draftCover = "", draftImgs = [], authCb = null, authExp = "";
-// Сброс устаревшего пароля в кэше
-if (localStorage.getItem("clan_pass") && localStorage.getItem("clan_pass") !== PASS_CREATE) {
-localStorage.removeItem("clan_pass");
-}
-if (localStorage.getItem("clan_theme") === "light") document.body.classList.add("light-theme");
-// Заполнение списков типов ферм
-$("typeFilter").innerHTML = <option value="">Все виды ферм</option> + FARM_TYPES.map(t => <option>${t}</option>).join("");
-$("fType").innerHTML = FARM_TYPES.map(t => <option>${t}</option>).join("");
-function getCfg() {
-return {
-binId: localStorage.getItem("clan_bin_id") || DEF_BIN,
-apiKey: localStorage.getItem("clan_api_key") || DEF_KEY,
-createPass: localStorage.getItem("clan_pass") || PASS_CREATE
-};
-}
-function setStatus(txt, err = false) {
-const el = $("syncStatus");
-el.textContent = txt;
-el.style.color = err ? "var(--crit)" : "var(--muted)";
-}
-function toggleTheme() {
-document.body.classList.toggle("light-theme");
-localStorage.setItem("clan_theme", document.body.classList.contains("light-theme") ? "light" : "dark");
-$("dotsMenu").classList.remove("open");
-}
-function toggleDots(e) { e.stopPropagation(); $("dotsMenu").classList.toggle("open"); }
-document.addEventListener("click", e => { if (!$("dotsWrap").contains(e.target)) $("dotsMenu").classList.remove("open"); });
-function openModal(id) { $(id).classList.add("open"); }
-function closeModal(id) {
-if (id === "addModal") editId = null;
-if (id === "reportModal") reportId = null;
-if (id === "authModal") { authCb = null; authExp = ""; }
-$(id).classList.remove("open");
-}
-// Проверка пароля
-function askPass(pass, title, desc, cb) {
-if (!pass) return cb();
-authExp = pass; authCb = cb;
-$("authTitle").textContent = title;
-$("authDesc").textContent = desc;
-$("authPassInput").value = "";
-$("authPassInput").type = "password";
-$("authErr").textContent = "";
-openModal("authModal");
-setTimeout(() => $("authPassInput").focus(), 50);
-}
-function toggleEye() {
-const inp = $("authPassInput");
-inp.type = inp.type === "password" ? "text" : "password";
-inp.focus();
-}
-function confirmAuth() {
-if ($("authPassInput").value.trim() !== authExp) {
-$("authErr").textContent = "Неверный пароль! Проверьте раскладку и регистр.";
-return;
-}
-const cb = authCb;
-closeModal("authModal");
-if (cb) cb();
-}
-// Работа с фото и Drag & Drop
-function bindDrop(id, fn) {
-const z = $(id);
-["dragenter", "dragover"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add("dragover"); }));
-["dragleave", "drop"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove("dragover"); }));
-z.addEventListener("drop", e => e.dataTransfer?.files.length && fn(e.dataTransfer.files));
-}
-bindDrop("coverDropZone", f => setCover(f[0]));
-bindDrop("noteImgsDropZone", f => addNoteImgs(f));
-function compress(file, maxW, q) {
-return new Promise((res, rej) => {
-const r = new FileReader();
-r.onload = e => {
-const img = new Image();
-img.onload = () => {
-let w = img.width, h = img.height;
-if (w > maxW) { h = Math.round(h * (maxW / w)); w = maxW; }
-const c = Object.assign(document.createElement("canvas"), { width: w, height: h });
-c.getContext("2d").drawImage(img, 0, 0, w, h);
-res(c.toDataURL("image/jpeg", q));
-};
-img.onerror = rej; img.src = e.target.result;
-};
-r.onerror = rej; r.readAsDataURL(file);
-});
-}
-async function setCover(file) {
-if (!file || !file.type.startsWith("image/")) return;
-draftCover = await compress(file, 850, 0.72);
-renderPreviews();
-}
-function handleCover(e) { setCover(e.target.files[0]); }
-async function addNoteImgs(list) {
-const files = Array.from(list).filter(f => f.type.startsWith("image/")).slice(0, 4 - draftImgs.length);
-for (const f of files) draftImgs.push(await compress(f, 750, 0.68));
-renderPreviews();
-}
-function handleNoteImgs(e) { addNoteImgs(e.target.files); e.target.value = ""; }
-function renderPreviews() {
-$("coverPreview").innerHTML = draftCover
-? <div class="preview-item"><img src="${draftCover}"><button type="button" class="preview-del" onclick="draftCover='';$('fCoverInput').value='';renderPreviews()">×</button></div> : "";
-$("noteImgsPreview").innerHTML = draftImgs.map((src, i) =>
-<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="draftImgs.splice(${i},1);renderPreviews()">×</button></div>
-).join("");
-}
-// Облако JSONBin
-async function syncCloud(method = "GET") {
-const { binId, apiKey } = getCfg();
-if (!binId || !apiKey) {
-if (method === "GET") farms = JSON.parse(localStorage.getItem("clan_farms_local") || "[]");
-else localStorage.setItem("clan_farms_local", JSON.stringify(farms));
-setStatus("Режим: Локальное хранение (⋮ → Облако для общей базы)");
-return render();
-}
-try {
-setStatus(method === "GET" ? "Синхронизация с облаком..." : "Сохранение в облако...");
-const url = https://jsonbin.io{binId}${method === "GET" ? "/latest" : ""};
-const opt = { method, headers: { "X-Master-Key": apiKey } };
-if (method === "PUT") { opt.headers["Content-Type"] = "application/json"; opt.body = JSON.stringify(farms); }
-const res = await fetch(url, opt);
-if (!res.ok) throw new Error(Код ответа ${res.status});
-if (method === "GET") {
-const data = await res.json();
-farms = Array.isArray(data.record) ? data.record : [];
-}
-setStatus(method === "GET" ? "Режим: Общая база клана подключена ✓" : "Сохранено в общую базу клана ✓");
-render();
-} catch (e) {
-setStatus("Ошибка облака: " + e.message, true);
-}
-}
-// Добавление / Редактирование
-function openAddModal() {
-askPass(getCfg().createPass, "➕ Создание фермы", "Введите пароль для добавления фермы:", () => {
-editId = null;
-$("modalTitle").textContent = "Добавить ферму";
-$("saveBtn").textContent = "Сохранить";
-["fName", "fAuthor", "fX", "fY", "fZ", "fRate", "fNote", "fCoverInput", "fNoteImgsInput"].forEach(id => $(id).value = "");
-$("fType").selectedIndex = 0; $("fDim").value = "Верхний мир"; $("fPrio").value = "med";
-draftCover = ""; draftImgs = []; renderPreviews();
-openModal("addModal");
-});
-}
-function openEditModal(id) {
-askPass(PASS_ADMIN, "✏️ Редактирование фермы", "Введите пароль администратора:", () => {
-const f = farms.find(x => String(x.id) === String(id));
-if (!f) return;
-editId = f.id;
-$("modalTitle").textContent = "Редактировать ферму";
-$("saveBtn").textContent = "Сохранить изменения";
-$("fType").value = f.type || FARM_TYPES[0];
-$("fName").value = f.name || "";
-$("fDim").value = f.dim || "Верхний мир";
-$("fAuthor").value = f.author === "Не указан" ? "" : (f.author || "");
-$("fX").value = f.x ?? ""; $("fY").value = f.y ?? ""; $("fZ").value = f.z ?? "";
-$("fRate").value = f.rate || ""; $("fPrio").value = f.prio || "med"; $("fNote").value = f.note || "";
-draftCover = f.cover || "";
-draftImgs = Array.isArray(f.noteImgs) ? [...f.noteImgs] : [];
-$("fCoverInput").value = ""; $("fNoteImgsInput").value = "";
-renderPreviews();
-openModal("addModal");
-});
-}
-async function saveFarm() {
-const name = $("fName").value.trim(), rate = $("fRate").value.trim();
-if (!name || !rate) return alert("Заполните название фермы и ресы/ч!");
-const old = editId !== null ? farms.find(x => String(x.id) === String(editId)) : null;
-const item = {
-id: editId !== null ? editId : Date.now(),
-type: $("fType").value, name, dim: $("fDim").value,
-x: $("fX").value || 0, y: $("fY").value || 64, z: $("fZ").value || 0,
-rate, prio: $("fPrio").value, note: $("fNote").value.trim(),
-author: $("fAuthor").value.trim() || "Не указан",
-cover: draftCover, noteImgs: [...draftImgs],
-reports: Array.isArray(old?.reports) ? old.reports : []
-};
-if (editId !== null) {
-const idx = farms.findIndex(x => String(x.id) === String(editId));
-if (idx !== -1) farms[idx] = item;
-} else {
-farms.unshift(item);
-}
-closeModal("addModal");
-await syncCloud("PUT");
-}
-// Быстрая вставка (Для Сони)
-function openSonyaModal() {
-$("dotsMenu").classList.remove("open");
-askPass(getCfg().createPass, "📥 Доступ для Сони", "Введите пароль для добавления ферм:", () => {
-$("sonyaCodeInput").value = "";
-openModal("sonyaModal");
-});
-}
-async function importSonyaCode() {
-const lines = $("sonyaCodeInput").value.trim().split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-if (!lines.length) return alert("Вставьте хотя бы одну строку с кодом фермы!");
-let count = 0;
-lines.forEach((line, idx) => {
-const p = line.split("@").map(s => s.trim());
-if (p.length < 2) return;
-const nums = (p[2] || "").match(/-?\d+(.\d+)?/g) || [];
-const [x, y, z] = nums.length === 2 ? [Math.round(nums[0]), 64, Math.round(nums[1])]
-: nums.length >= 3 ? [Math.round(nums[0]), Math.round(nums[1]), Math.round(nums[2])] :;
-const d = (p[3] || "").toLowerCase(), pr = (p[5] || "").toLowerCase();
-farms.unshift({
-id: Date.now() + idx,
-name: p[0] || "Без названия", rate: p[1] || "Не указано", x, y, z,
-dim: p.length <= 4 ? "Верхний мир" : d.includes("незер") || d.includes("ад") ? "Незер" : d.includes("энд") ? "Энд" : "Верхний мир",
-type: p.length <= 4 ? "Другое" : (p[4] || "Другое"),
-prio: p.length <= 4 ? "med" : pr.includes("крит") ? "crit" : pr.includes("низ") ? "low" : "med",
-author: p.length <= 4 ? "Не указан" : (p[6] || "Не указан"),
-note: p.length <= 4 ? (p[3] || "") : p.slice(7).join("@"),
-cover: "", noteImgs: [], reports: []
-});
-count++;
-});
-if (!count) return alert("Не удалось распознать код. Используйте разделитель @");
-closeModal("sonyaModal");
-await syncCloud("PUT");
-}
-// Репорты и удаление
-function openReportModal(id) {
-const f = farms.find(x => String(x.id) === String(id));
-if (!f) return;
-reportId = f.id;
-$("reportFarmName").textContent = Ферма: ${f.name};
-$("rAuthor").value = ""; $("rText").value = "";
-openModal("reportModal");
-}
-async function submitReport() {
-const text = $("rText").value.trim();
-if (!text) return alert("Опишите, что именно сломалось!");
-const idx = farms.findIndex(x => String(x.id) === String(reportId));
-if (idx === -1) return;
-if (!Array.isArray(farms[idx].reports)) farms[idx].reports = [];
-const now = new Date();
-const date = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) + " " + now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-farms[idx].reports.push({ author: $("rAuthor").value.trim() || "Игрок", text, date });
-closeModal("reportModal");
-await syncCloud("PUT");
-}
-function clearReports(id) {
-askPass(PASS_ADMIN, "🛠 Снятие репорта", "Введите пароль администратора:", async () => {
-const idx = farms.findIndex(x => String(x.id) === String(id));
-if (idx !== -1) { farms[idx].reports = []; await syncCloud("PUT"); }
-});
-}
-function deleteFarm(id) {
-askPass(PASS_ADMIN, "🗑 Удаление фермы", "Введите пароль администратора для удаления:", async () => {
-if (!confirm("Точно удалить эту ферму из списка клана?")) return;
-farms = farms.filter(x => String(x.id) !== String(id));
-await syncCloud("PUT");
-});
-}
-// Облако
-function openCloudModal() {
-$("dotsMenu").classList.remove("open");
-askPass(PASS_CLOUD, "☁ Вход в настройки облака", "Введите пароль доступа к облаку:", () => {
-const cfg = getCfg();
-$("cBinId").value = cfg.binId; $("cApiKey").value = cfg.apiKey; $("cPass").value = cfg.createPass;
-openModal("cloudModal");
-});
-}
-function saveCloudConfig() {
-localStorage.setItem("clan_bin_id", $("cBinId").value.trim());
-localStorage.setItem("clan_api_key", $("cApiKey").value.trim());
-localStorage.setItem("clan_pass", $("cPass").value.trim());
-closeModal("cloudModal");
-syncCloud("GET");
-}
-// Рендер карточек
-const esc = s => String(s).replace(/[&<>"']/g, m => ({ "&": "&", "<": "<", ">": ">", '"': """, "'": "'" }[m]));
-const openLightbox = src => { $("lightboxImg").src = src; openModal("lightbox"); };
-function copyCoords(txt, btn) {
-navigator.clipboard.writeText(txt);
-const old = btn.textContent; btn.textContent = "Скопировано!";
-setTimeout(() => btn.textContent = old, 1200);
-}
-function render() {
-const q = $("searchInput").value.toLowerCase(), tf = $("typeFilter").value, pf = $("prioFilter").value;
-$("statTotal").textContent = farms.length;
-$("statBroken").textContent = farms.filter(f => f.reports?.length > 0).length;
-$("statCrit").textContent = farms.filter(f => f.prio === "crit").length;
-const prioMap = {
-crit: ["🔴 Критичный риск поломки", "prio-crit"],
-med:  ["🟡 Средний риск поломки", "prio-med"],
-low:  ["🔵 Надёжная (низкий риск)", "prio-low"]
-};
-const list = farms.filter(f => {
-const broken = f.reports?.length > 0;
-if (tf && f.type !== tf) return false;
-if (pf === "broken" && !broken) return false;
-if (pf && pf !== "broken" && f.prio !== pf) return false;
-return ${f.name} ${f.type} ${f.dim} ${f.x} ${f.y} ${f.z} ${f.note} ${f.author}.toLowerCase().includes(q);
-});
-$("farmsGrid").innerHTML = !list.length
-? <div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму», чтобы создать первую запись.</div>
-: list.map(f => {
-const [pText, pCls] = prioMap[f.prio] || prioMap.low;
-const coords = ${f.x} ${f.y} ${f.z}, reps = f.reports || [], broken = reps.length > 0;
-return <div class="card ${broken ? "broken" : ""}"> ${broken ?
-!ТРЕБУЕТСЯ РЕМОНТ (${reps.length})Ферма сломана! Смотрите репорт ниже.
-✓ Починили
-: ""} ${f.cover ?: ""} <div class="card-body"> <div> <div class="card-top"><span class="type-badge">${esc(f.type)}</span><span class="prio-badge ${pCls}">${pText}</span></div> <h3>${esc(f.name)}</h3> </div> ${broken ?🚨 Репорты о поломке:${reps.map(r => <div class="report-item"><b>${esc(r.author)}</b> (${esc(r.date || "")}): ${esc(r.text)}</div>).join("")}: ""} <div class="info-row"><span>🌍 ${esc(f.dim)}: <b class="coords">${esc(coords)}</b></span><button type="button" class="copy-btn" onclick="copyCoords('${esc(coords)}', this)">Копировать</button></div> <div class="info-row"><span>⚡ Ресы/ч:</span><b>${esc(f.rate)}</b></div> ${f.note ?${esc(f.note)}: ""} ${f.noteImgs?.length ?${f.noteImgs.map(s => <img class="note-thumb" src="${s}" onclick="openLightbox('${s}')">).join("")} : ""} </div> <div class="card-foot"> <span>Построил: <b>${esc(f.author)}</b></span> <div class="card-foot-actions"> <button type="button" class="sm-btn report-btn" onclick="openReportModal('${f.id}')">⚠ Репорт</button> <button type="button" class="sm-btn edit-btn" onclick="openEditModal('${f.id}')">Редактировать</button> <button type="button" class="sm-btn danger" onclick="deleteFarm('${f.id}')">Удалить</button> </div> </div> </div>;
-}).join("");
-}
-syncCloud("GET");
+  function render() {
+    const q = $("searchInput").value.toLowerCase(), tf = $("typeFilter").value, pf = $("prioFilter").value;
+    $("statTotal").textContent = farms.length;
+    $("statBroken").textContent = farms.filter(f => Array.isArray(f.reports) && f.reports.length > 0).length;
+    $("statCrit").textContent = farms.filter(f => f.prio === "crit").length;
+
+    const prioMap = {
+      crit: ["🔴 Критичный риск поломки", "prio-crit"],
+      med:  ["🟡 Средний риск поломки", "prio-med"],
+      low:  ["🔵 Надёжная (низкий риск)", "prio-low"]
+    };
+
+    const list = farms.filter(f => {
+      const broken = Array.isArray(f.reports) && f.reports.length > 0;
+      if (tf && f.type !== tf) return false;
+      if (pf === "broken" && !broken) return false;
+      if (pf && pf !== "broken" && f.prio !== pf) return false;
+      return `${f.name} ${f.type} ${f.dim} ${f.x} ${f.y} ${f.z} ${f.note} ${f.author}`.toLowerCase().includes(q);
+    });
+
+    $("farmsGrid").innerHTML = !list.length
+      ? `<div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму», чтобы создать первую запись.</div>`
+      : list.map(f => {
+          const [pText, pCls] = prioMap[f.prio] || prioMap.low;
+          const coords = `${f.x} ${f.y} ${f.z}`, reps = Array.isArray(f.reports) ? f.reports : [], broken = reps.length > 0;
+          return `
+            <div class="card ${broken ? "broken" : ""}">
+              ${broken ? `<div class="broken-banner">
+                <div class="broken-left"><div class="excl-icon">!</div><div class="broken-info"><b>ТРЕБУЕТСЯ РЕМОНТ (${reps.length})</b><span>Ферма сломана! Смотрите репорт ниже.</span></div></div>
+                <button type="button" class="fix-btn" onclick="clearReports('${f.id}')">✓ Починили</button>
+              </div>` : ""}
+              ${f.cover ? `<img class="card-cover" src="${f.cover}" onclick="openLightbox('${f.cover}')">` : ""}
+              <div class="card-body">
+                <div>
+                  <div class="card-top"><span class="type-badge">${esc(f.type)}</span><span class="prio-badge ${pCls}">${pText}</span></div>
+                  <h3>${esc(f.name)}</h3>
+                </div>
+                ${broken ? `<div class="report-box"><div class="report-box-title">🚨 Репорты о поломке:</div>${reps.map(r => `<div class="report-item"><b>${esc(r.author)}</b> (${esc(r.date || "")}): ${esc(r.text)}</div>`).join("")}</div>` : ""}
+                <div class="info-row"><span>🌍 ${esc(f.dim)}: <b class="coords">${esc(coords)}</b></span><button type="button" class="copy-btn" onclick="copyCoords('${esc(coords)}', this)">Копировать</button></div>
+                <div class="info-row"><span>⚡ Ресы/ч:</span><b>${esc(f.rate)}</b></div>
+                ${f.note ? `<div class="note">${esc(f.note)}</div>` : ""}
+                ${Array.isArray(f.noteImgs) && f.noteImgs.length ? `<div class="note-thumbs">${f.noteImgs.map(s => `<img class="note-thumb" src="${s}" onclick="openLightbox('${s}')">`).join("")}</div>` : ""}
+              </div>
+              <div class="card-foot">
+                <span>Построил: <b>${esc(f.author)}</b></span>
+                <div class="card-foot-actions">
+                  <button type="button" class="sm-btn report-btn" onclick="openReportModal('${f.id}')">⚠ Репорт</button>
+                  <button type="button" class="sm-btn edit-btn" onclick="openEditModal('${f.id}')">Редактировать</button>
+                  <button type="button" class="sm-btn danger" onclick="deleteFarm('${f.id}')">Удалить</button>
+                </div>
+              </div>
+            </div>`;
+        }).join("");
+  }
+
+  syncCloud("GET");
+</script>
+</body>
+</html>
