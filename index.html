@@ -115,6 +115,7 @@
   }
   button.danger:hover { background: rgba(239,83,80,0.15); }
 
+  /* Меню три точки */
   .dots-wrap {
     position: relative;
   }
@@ -541,15 +542,17 @@
     white-space: pre-wrap;
     word-break: break-word;
   }
-  .pass-wrap {
+
+  /* Встроенное окно пароля */
+  .pass-input-wrap {
     position: relative;
     display: flex;
     align-items: center;
   }
-  .pass-wrap input {
+  .pass-input-wrap input {
     padding-right: 40px;
   }
-  .eye-btn {
+  .pass-eye {
     position: absolute;
     right: 6px;
     background: transparent;
@@ -558,9 +561,15 @@
     font-size: 14px;
     color: var(--muted);
   }
-  .eye-btn:hover {
+  .pass-eye:hover {
     background: transparent;
     color: var(--text);
+  }
+  .auth-error {
+    color: var(--crit);
+    font-size: 12px;
+    margin-top: 6px;
+    min-height: 16px;
   }
 
   /* Lightbox */
@@ -638,26 +647,26 @@
   <div class="grid" id="farmsGrid"></div>
 </div>
 
-<!-- Встроенное окно ввода пароля (работает во всех браузерах) -->
+<!-- Встроенное модальное окно пароля -->
 <div class="modal-backdrop" id="authModal" style="z-index: 80;">
-  <div class="modal" style="max-width: 380px;">
+  <div class="modal" style="max-width: 390px;">
     <h2 id="authTitle">🔒 Введите пароль</h2>
     <p class="hint" id="authDesc" style="margin-top:0; margin-bottom:10px;"></p>
     <div class="form-group">
-      <div class="pass-wrap">
-        <input type="password" id="authInput" placeholder="Пароль..." onkeydown="if(event.key==='Enter') submitAuth()">
-        <button type="button" class="eye-btn" onclick="toggleAuthEye()" title="Показать/скрыть">👁</button>
+      <div class="pass-input-wrap">
+        <input type="password" id="authInput" placeholder="Пароль..." onkeydown="if(event.key==='Enter') confirmAuth()">
+        <button type="button" class="pass-eye" onclick="toggleAuthEye()">👁</button>
       </div>
-      <div id="authError" style="color:var(--crit); font-size:12px; margin-top:6px; display:none;">Неверный пароль! Проверьте раскладку и регистр.</div>
+      <div class="auth-error" id="authError"></div>
     </div>
     <div class="modal-actions">
-      <button onclick="closeModal('authModal')">Отмена</button>
-      <button class="primary" onclick="submitAuth()">Подтвердить</button>
+      <button onclick="closeAuthModal()">Отмена</button>
+      <button class="primary" onclick="confirmAuth()">Подтвердить</button>
     </div>
   </div>
 </div>
 
-<!-- Окно быстрой вставки кодом (Для Сони) -->
+<!-- Модальное окно «Для Сони» -->
 <div class="modal-backdrop" id="sonyaModal">
   <div class="modal">
     <h2>📥 Быстрая вставка фермы кодом (для Сони)</h2>
@@ -788,11 +797,11 @@
   <div class="modal">
     <h2>☁ Подключение общей базы клана (JSONBin.io)</h2>
     <p class="hint" style="margin-top:0;">
-      Настройки подключения к общей облачной базе данных клана.
+      Настройки подключения к облачной базе клана:
     </p>
     <div class="form-group">
       <label>Bin ID</label>
-      <input type="text" id="cBinId" placeholder="Например: 6741a2b3e41b4d34e4567890">
+      <input type="text" id="cBinId" placeholder="Например: 6b04334bac6210605a9df50d">
     </div>
     <div class="form-group">
       <label>X-Master-Key (API ключ)</label>
@@ -817,369 +826,392 @@ const PASS_CREATE = "ROME";
 const PASS_EDIT_FIX = "ROMEFARMS";
 const PASS_CLOUD = "ROMES0fa";
 
-  let farms = [];
-  let editingFarmId = null;
-  let reportingFarmId = null;
-  let draftCover = "";
-  let draftNoteImgs = [];
+let farms = [];
+let editingFarmId = null;
+let reportingFarmId = null;
+let draftCover = "";
+let draftNoteImgs = [];
 
-  let authExpectedPass = "";
-  let authCallback = null;
+let authExpectedPass = "";
+let authSuccessCallback = null;
 
-  function requireAuth(expectedPass, descText, onSuccess) {
-    authExpectedPass = expectedPass;
-    authCallback = onSuccess;
-    document.getElementById("authDesc").textContent = descText;
-    const inp = document.getElementById("authInput");
-    inp.value = "";
-    inp.type = "password";
-    document.getElementById("authError").style.display = "none";
-    document.getElementById("authModal").classList.add("open");
-    setTimeout(() => inp.focus(), 50);
+function requirePass(expectedPass, title, desc, onSuccess) {
+  authExpectedPass = expectedPass;
+  authSuccessCallback = onSuccess;
+  document.getElementById("authTitle").textContent = title;
+  document.getElementById("authDesc").textContent = desc;
+  const inp = document.getElementById("authInput");
+  inp.value = "";
+  inp.type = "password";
+  document.getElementById("authError").textContent = "";
+  document.getElementById("authModal").classList.add("open");
+  setTimeout(() => inp.focus(), 50);
+}
+
+function closeAuthModal() {
+  authExpectedPass = "";
+  authSuccessCallback = null;
+  document.getElementById("authModal").classList.remove("open");
+}
+
+function toggleAuthEye() {
+  const inp = document.getElementById("authInput");
+  inp.type = inp.type === "password" ? "text" : "password";
+  inp.focus();
+}
+
+function confirmAuth() {
+  const entered = document.getElementById("authInput").value.trim();
+  if (entered !== authExpectedPass) {
+    document.getElementById("authError").textContent = "❌ Неверный пароль! Проверьте раскладку и регистр.";
+    return;
   }
+  const cb = authSuccessCallback;
+  closeAuthModal();
+  if (typeof cb === "function") cb();
+}
 
-  function submitAuth() {
-    const val = document.getElementById("authInput").value.trim();
-    if (val === authExpectedPass) {
-      const cb = authCallback;
-      authCallback = null;
-      document.getElementById("authModal").classList.remove("open");
-      if (cb) cb();
-    } else {
-      document.getElementById("authError").style.display = "block";
-    }
+function applySavedTheme() {
+  if (localStorage.getItem("clan_theme") === "light") {
+    document.body.classList.add("light-theme");
   }
+}
+applySavedTheme();
 
-  function toggleAuthEye() {
-    const inp = document.getElementById("authInput");
-    inp.type = inp.type === "password" ? "text" : "password";
-  }
+function toggleTheme() {
+  document.body.classList.toggle("light-theme");
+  const isLight = document.body.classList.contains("light-theme");
+  localStorage.setItem("clan_theme", isLight ? "light" : "dark");
+  closeDotsMenu();
+}
 
-  function applySavedTheme() {
-    if (localStorage.getItem("clan_theme") === "light") {
-      document.body.classList.add("light-theme");
-    }
-  }
-  applySavedTheme();
+function toggleDotsMenu(e) {
+  e.stopPropagation();
+  document.getElementById("dotsMenu").classList.toggle("open");
+}
 
-  function toggleTheme() {
-    document.body.classList.toggle("light-theme");
-    const isLight = document.body.classList.contains("light-theme");
-    localStorage.setItem("clan_theme", isLight ? "light" : "dark");
-    closeDotsMenu();
-  }
+function closeDotsMenu() {
+  document.getElementById("dotsMenu").classList.remove("open");
+}
 
-  function toggleDotsMenu(e) {
-    e.stopPropagation();
-    document.getElementById("dotsMenu").classList.toggle("open");
-  }
-  function closeDotsMenu() {
-    document.getElementById("dotsMenu").classList.remove("open");
-  }
-  document.addEventListener("click", e => {
-    const wrap = document.getElementById("dotsWrap");
-    if (wrap && !wrap.contains(e.target)) closeDotsMenu();
-  });
+document.addEventListener("click", e => {
+  const wrap = document.getElementById("dotsWrap");
+  if (wrap && !wrap.contains(e.target)) closeDotsMenu();
+});
 
-  function openSonyaModal() {
-    closeDotsMenu();
-    requireAuth(PASS_CREATE, "Для быстрой вставки ферм кодом введите пароль создания:", () => {
+function openSonyaModal() {
+  closeDotsMenu();
+  requirePass(
+    PASS_CREATE,
+    "🔒 Доступ к импорту ферм",
+    "Введите пароль для создания ферм:",
+    () => {
       document.getElementById("sonyaCodeInput").value = "";
       document.getElementById("sonyaModal").classList.add("open");
-    });
-  }
-
-  function parseCoordsString(str) {
-    const nums = (str || "").match(/-?\d+(\.\d+)?/g);
-    if (!nums || nums.length === 0) return { x: 0, y: 64, z: 0 };
-    if (nums.length === 2) return { x: Math.round(Number(nums[0])), y: 64, z: Math.round(Number(nums[1])) };
-    return { x: Math.round(Number(nums[0])), y: Math.round(Number(nums[1])), z: Math.round(Number(nums[2])) };
-  }
-
-  function parsePrioString(str) {
-    const s = (str || "").toLowerCase();
-    if (s.includes("крит") || s.includes("crit") || s.includes("выс")) return "crit";
-    if (s.includes("низ") || s.includes("low") || s.includes("над")) return "low";
-    return "med";
-  }
-
-  function parseDimString(str) {
-    const s = (str || "").toLowerCase();
-    if (s.includes("незер") || s.includes("ад") || s.includes("nether")) return "Незер";
-    if (s.includes("энд") || s.includes("край") || s.includes("end")) return "Энд";
-    return "Верхний мир";
-  }
-
-  async function importSonyaCode() {
-    const raw = document.getElementById("sonyaCodeInput").value.trim();
-    if (!raw) {
-      alert("Вставьте хотя бы одну строку с кодом фермы!");
-      return;
     }
+  );
+}
 
-    const lines = raw.split(/
+function parseCoordsString(str) {
+  const nums = (str || "").match(/-?\d+(\.\d+)?/g);
+  if (!nums || nums.length === 0) return { x: 0, y: 64, z: 0 };
+  if (nums.length === 2) return { x: Math.round(Number(nums[0])), y: 64, z: Math.round(Number(nums[1])) };
+  return { x: Math.round(Number(nums[0])), y: Math.round(Number(nums[1])), z: Math.round(Number(nums[2])) };
+}
+
+function parsePrioString(str) {
+  const s = (str || "").toLowerCase();
+  if (s.includes("крит") || s.includes("crit") || s.includes("выс")) return "crit";
+  if (s.includes("низ") || s.includes("low") || s.includes("над")) return "low";
+  return "med";
+}
+
+function parseDimString(str) {
+  const s = (str || "").toLowerCase();
+  if (s.includes("незер") || s.includes("ад") || s.includes("nether")) return "Незер";
+  if (s.includes("энд") || s.includes("край") || s.includes("end")) return "Энд";
+  return "Верхний мир";
+}
+
+async function importSonyaCode() {
+  const raw = document.getElementById("sonyaCodeInput").value.trim();
+  if (!raw) {
+    alert("Вставьте хотя бы одну строку с кодом фермы!");
+    return;
+  }
+
+  const lines = raw.split(/
 ?
 /).map(l => l.trim()).filter(Boolean);
-    let addedCount = 0;
+  let addedCount = 0;
 
-    lines.forEach((line, idx) => {
-      const parts = line.split("@").map(p => p.trim());
-      if (parts.length < 2) return;
+  lines.forEach((line, idx) => {
+    const parts = line.split("@").map(p => p.trim());
+    if (parts.length < 2) return;
 
-      const name = parts[0] || "Без названия";
-      const rate = parts[1] || "Не указано";
-      const coords = parseCoordsString(parts[2] || "");
+    const name = parts[0] || "Без названия";
+    const rate = parts[1] || "Не указано";
+    const coords = parseCoordsString(parts[2] || "");
 
-      let dim = "Верхний мир";
-      let type = "Другое";
-      let prio = "med";
-      let author = "Не указан";
-      let note = "";
+    let dim = "Верхний мир";
+    let type = "Другое";
+    let prio = "med";
+    let author = "Не указан";
+    let note = "";
 
-      if (parts.length <= 4) {
-        note = parts[3] || "";
-      } else {
-        dim = parseDimString(parts[3]);
-        type = parts[4] || "Другое";
-        prio = parsePrioString(parts[5]);
-        author = parts[6] || "Не указан";
-        note = parts.slice(7).join("@");
-      }
-
-      farms.unshift({
-        id: Date.now() + idx,
-        type,
-        name,
-        dim,
-        x: coords.x,
-        y: coords.y,
-        z: coords.z,
-        rate,
-        prio,
-        note,
-        author,
-        cover: "",
-        noteImgs: [],
-        reports: []
-      });
-      addedCount++;
-    });
-
-    if (!addedCount) {
-      alert("Не удалось распознать код. Используйте разделитель @ (например: Физер розы@17к/ч@-1015 64 5771@Описание)");
-      return;
+    if (parts.length <= 4) {
+      note = parts[3] || "";
+    } else {
+      dim = parseDimString(parts[3]);
+      type = parts[4] || "Другое";
+      prio = parsePrioString(parts[5]);
+      author = parts[6] || "Не указан";
+      note = parts.slice(7).join("@");
     }
 
-    closeModal("sonyaModal");
-    await pushFarms();
-  }
-
-  function getConfig() {
-    return {
-      binId: localStorage.getItem("clan_bin_id") || HARDCODED_BIN_ID,
-      apiKey: localStorage.getItem("clan_api_key") || HARDCODED_API_KEY
-    };
-  }
-
-  function updateStatus(text, isError = false) {
-    const el = document.getElementById("syncStatus");
-    el.textContent = text;
-    el.style.color = isError ? "var(--crit)" : "var(--muted)";
-  }
-
-  function setupDropZone(zoneId, onFilesDropped) {
-    const zone = document.getElementById(zoneId);
-    if (!zone) return;
-    ["dragenter", "dragover"].forEach(ev => {
-      zone.addEventListener(ev, e => {
-        e.preventDefault();
-        e.stopPropagation();
-        zone.classList.add("dragover");
-      });
+    farms.unshift({
+      id: Date.now() + idx,
+      type,
+      name,
+      dim,
+      x: coords.x,
+      y: coords.y,
+      z: coords.z,
+      rate,
+      prio,
+      note,
+      author,
+      cover: "",
+      noteImgs: [],
+      reports: []
     });
-    ["dragleave", "drop"].forEach(ev => {
-      zone.addEventListener(ev, e => {
-        e.preventDefault();
-        e.stopPropagation();
-        zone.classList.remove("dragover");
-      });
-    });
-    zone.addEventListener("drop", e => {
-      if (e.dataTransfer && e.dataTransfer.files.length) {
-        onFilesDropped(e.dataTransfer.files);
-      }
-    });
-  }
-
-  window.addEventListener("DOMContentLoaded", () => {
-    setupDropZone("coverDropZone", files => processCoverFile(files[0]));
-    setupDropZone("noteImgsDropZone", files => processNoteImgFiles(files));
+    addedCount++;
   });
 
-  function compressImage(file, maxW, quality) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const img = new Image();
-        img.onload = () => {
-          let w = img.width;
-          let h = img.height;
-          if (w > maxW) {
-            h = Math.round(h * (maxW / w));
-            w = maxW;
-          }
-          const canvas = document.createElement("canvas");
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL("image/jpeg", quality));
-        };
-        img.onerror = reject;
-        img.src = e.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+  if (!addedCount) {
+    alert("Не удалось распознать код. Используйте разделитель @ (например: Физер розы@17к/ч@-1015 64 5771@Описание)");
+    return;
+  }
+
+  closeModal("sonyaModal");
+  await pushFarms();
+}
+
+function getConfig() {
+  return {
+    binId: localStorage.getItem("clan_bin_id") || HARDCODED_BIN_ID,
+    apiKey: localStorage.getItem("clan_api_key") || HARDCODED_API_KEY
+  };
+}
+
+function updateStatus(text, isError = false) {
+  const el = document.getElementById("syncStatus");
+  el.textContent = text;
+  el.style.color = isError ? "var(--crit)" : "var(--muted)";
+}
+
+function setupDropZone(zoneId, onFilesDropped) {
+  const zone = document.getElementById(zoneId);
+  if (!zone) return;
+  ["dragenter", "dragover"].forEach(ev => {
+    zone.addEventListener(ev, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      zone.classList.add("dragover");
     });
-  }
-
-  async function processCoverFile(file) {
-    if (!file || !file.type.startsWith("image/")) return;
-    draftCover = await compressImage(file, 850, 0.72);
-    renderDraftPreviews();
-  }
-
-  function handleCoverSelect(e) {
-    processCoverFile(e.target.files[0]);
-  }
-
-  async function processNoteImgFiles(fileList) {
-    const files = Array.from(fileList)
-      .filter(f => f.type.startsWith("image/"))
-      .slice(0, 4 - draftNoteImgs.length);
-    for (const f of files) {
-      const dataUrl = await compressImage(f, 750, 0.68);
-      draftNoteImgs.push(dataUrl);
+  });
+  ["dragleave", "drop"].forEach(ev => {
+    zone.addEventListener(ev, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      zone.classList.remove("dragover");
+    });
+  });
+  zone.addEventListener("drop", e => {
+    if (e.dataTransfer && e.dataTransfer.files.length) {
+      onFilesDropped(e.dataTransfer.files);
     }
-    renderDraftPreviews();
+  });
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  setupDropZone("coverDropZone", files => processCoverFile(files[0]));
+  setupDropZone("noteImgsDropZone", files => processNoteImgFiles(files));
+});
+
+function compressImage(file, maxW, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width;
+        let h = img.height;
+        if (w > maxW) {
+          h = Math.round(h * (maxW / w));
+          w = maxW;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function processCoverFile(file) {
+  if (!file || !file.type.startsWith("image/")) return;
+  draftCover = await compressImage(file, 850, 0.72);
+  renderDraftPreviews();
+}
+
+function handleCoverSelect(e) {
+  processCoverFile(e.target.files[0]);
+}
+
+async function processNoteImgFiles(fileList) {
+  const files = Array.from(fileList)
+    .filter(f => f.type.startsWith("image/"))
+    .slice(0, 4 - draftNoteImgs.length);
+  for (const f of files) {
+    const dataUrl = await compressImage(f, 750, 0.68);
+    draftNoteImgs.push(dataUrl);
+  }
+  renderDraftPreviews();
+}
+
+function handleNoteImgsSelect(e) {
+  processNoteImgFiles(e.target.files);
+  e.target.value = "";
+}
+
+function removeDraftCover() {
+  draftCover = "";
+  document.getElementById("fCoverInput").value = "";
+  renderDraftPreviews();
+}
+
+function removeDraftNoteImg(idx) {
+  draftNoteImgs.splice(idx, 1);
+  renderDraftPreviews();
+}
+
+function renderDraftPreviews() {
+  const cWrap = document.getElementById("coverPreview");
+  cWrap.innerHTML = draftCover
+    ? `<div class="preview-item"><img src="${draftCover}"><button type="button" class="preview-del" onclick="removeDraftCover()">×</button></div>`
+    : "";
+
+  const nWrap = document.getElementById("noteImgsPreview");
+  nWrap.innerHTML = draftNoteImgs.map((src, i) =>
+    `<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="removeDraftNoteImg(${i})">×</button></div>`
+  ).join("");
+}
+
+async function loadFarms() {
+  const cfg = getConfig();
+  if (!cfg.binId || !cfg.apiKey) {
+    const saved = localStorage.getItem("clan_farms_local");
+    farms = saved ? JSON.parse(saved) : [];
+    updateStatus("Режим: Локальное хранение (нажмите ⋮ → «Облако»)");
+    render();
+    return;
   }
 
-  function handleNoteImgsSelect(e) {
-    processNoteImgFiles(e.target.files);
-    e.target.value = "";
+  try {
+    updateStatus("Синхронизация с облаком...");
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}/latest`, {
+      headers: { "X-Master-Key": cfg.apiKey }
+    });
+    if (!res.ok) throw new Error("Ошибка доступа к Bin (" + res.status + ")");
+    const data = await res.json();
+    farms = Array.isArray(data.record) ? data.record : [];
+    updateStatus("Режим: Общая база клана подключена ✓");
+    render();
+  } catch (e) {
+    updateStatus("Ошибка облака: " + e.message, true);
   }
+}
 
-  function removeDraftCover() {
-    draftCover = "";
-    document.getElementById("fCoverInput").value = "";
-    renderDraftPreviews();
-  }
-
-  function removeDraftNoteImg(idx) {
-    draftNoteImgs.splice(idx, 1);
-    renderDraftPreviews();
-  }
-
-  function renderDraftPreviews() {
-    const cWrap = document.getElementById("coverPreview");
-    cWrap.innerHTML = draftCover
-      ? `<div class="preview-item"><img src="${draftCover}"><button type="button" class="preview-del" onclick="removeDraftCover()">×</button></div>`
-      : "";
-
-    const nWrap = document.getElementById("noteImgsPreview");
-    nWrap.innerHTML = draftNoteImgs.map((src, i) =>
-      `<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="removeDraftNoteImg(${i})">×</button></div>`
-    ).join("");
-  }
-
-  async function loadFarms() {
-    const cfg = getConfig();
-    if (!cfg.binId || !cfg.apiKey) {
-      const saved = localStorage.getItem("clan_farms_local");
-      farms = saved ? JSON.parse(saved) : [];
-      updateStatus("Режим: Локальное хранение (нажмите ⋮ → Облако)");
-      render();
-      return;
-    }
-
+async function pushFarms() {
+  const cfg = getConfig();
+  if (!cfg.binId || !cfg.apiKey) {
     try {
-      updateStatus("Синхронизация с облаком...");
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}/latest`, {
-        headers: { "X-Master-Key": cfg.apiKey }
-      });
-      if (!res.ok) throw new Error("Ошибка доступа к Bin (" + res.status + ")");
-      const data = await res.json();
-      farms = Array.isArray(data.record) ? data.record : [];
-      updateStatus("Режим: Общая база клана подключена ✓");
-      render();
-    } catch (e) {
-      updateStatus("Ошибка облака: " + e.message, true);
+      localStorage.setItem("clan_farms_local", JSON.stringify(farms));
+    } catch (err) {
+      alert("Память браузера переполнена из-за фото!");
     }
+    render();
+    return;
   }
 
-  async function pushFarms() {
-    const cfg = getConfig();
-    if (!cfg.binId || !cfg.apiKey) {
-      try {
-        localStorage.setItem("clan_farms_local", JSON.stringify(farms));
-      } catch (err) {
-        alert("Память браузера переполнена из-за фото!");
-      }
-      render();
-      return;
-    }
-
-    try {
-      updateStatus("Сохранение в облако...");
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Master-Key": cfg.apiKey
-        },
-        body: JSON.stringify(farms)
-      });
-      if (!res.ok) throw new Error("Не удалось сохранить (" + res.status + ")");
-      updateStatus("Сохранено в общую базу клана ✓");
-      render();
-    } catch (e) {
-      updateStatus("Ошибка сохранения: " + e.message, true);
-    }
+  try {
+    updateStatus("Сохранение в облако...");
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Master-Key": cfg.apiKey
+      },
+      body: JSON.stringify(farms)
+    });
+    if (!res.ok) throw new Error("Не удалось сохранить (" + res.status + ")");
+    updateStatus("Сохранено в общую базу клана ✓");
+    render();
+  } catch (e) {
+    updateStatus("Ошибка сохранения: " + e.message, true);
   }
+}
 
-  function resetFormFields() {
-    document.getElementById("fType").selectedIndex = 0;
-    document.getElementById("fName").value = "";
-    document.getElementById("fDim").value = "Верхний мир";
-    document.getElementById("fAuthor").value = "";
-    document.getElementById("fX").value = "";
-    document.getElementById("fY").value = "";
-    document.getElementById("fZ").value = "";
-    document.getElementById("fRate").value = "";
-    document.getElementById("fPrio").value = "med";
-    document.getElementById("fNote").value = "";
-    draftCover = "";
-    draftNoteImgs = [];
-    document.getElementById("fCoverInput").value = "";
-    document.getElementById("fNoteImgsInput").value = "";
-    renderDraftPreviews();
-  }
+function resetFormFields() {
+  document.getElementById("fType").selectedIndex = 0;
+  document.getElementById("fName").value = "";
+  document.getElementById("fDim").value = "Верхний мир";
+  document.getElementById("fAuthor").value = "";
+  document.getElementById("fX").value = "";
+  document.getElementById("fY").value = "";
+  document.getElementById("fZ").value = "";
+  document.getElementById("fRate").value = "";
+  document.getElementById("fPrio").value = "med";
+  document.getElementById("fNote").value = "";
+  draftCover = "";
+  draftNoteImgs = [];
+  document.getElementById("fCoverInput").value = "";
+  document.getElementById("fNoteImgsInput").value = "";
+  renderDraftPreviews();
+}
 
-  function openAddModal() {
-    requireAuth(PASS_CREATE, "Для создания новой фермы введите пароль:", () => {
+function openAddModal() {
+  requirePass(
+    PASS_CREATE,
+    "🔒 Создание новой фермы",
+    "Введите пароль для добавления фермы:",
+    () => {
       editingFarmId = null;
       document.getElementById("modalTitle").textContent = "Добавить ферму";
       document.getElementById("saveBtn").textContent = "Сохранить";
       resetFormFields();
       document.getElementById("addModal").classList.add("open");
-    });
-  }
+    }
+  );
+}
 
-  function openEditModal(id) {
-    requireAuth(PASS_EDIT_FIX, "Для редактирования фермы введите пароль администратора:", () => {
-      const farm = farms.find(f => f.id === id);
-      if (!farm) return;
+function openEditModal(id) {
+  const farm = farms.find(f => f.id === id);
+  if (!farm) return;
 
+  requirePass(
+    PASS_EDIT_FIX,
+    "🔒 Редактирование фермы",
+    "Введите пароль для изменения фермы:",
+    () => {
       editingFarmId = id;
       document.getElementById("modalTitle").textContent = "Редактировать ферму";
       document.getElementById("saveBtn").textContent = "Сохранить изменения";
@@ -1203,254 +1235,268 @@ const PASS_CLOUD = "ROMES0fa";
 
       renderDraftPreviews();
       document.getElementById("addModal").classList.add("open");
-    });
-  }
+    }
+  );
+}
 
-  function openCloudModal() {
-    closeDotsMenu();
-    requireAuth(PASS_CLOUD, "Для доступа к настройкам облачной базы введите пароль:", () => {
+function openCloudModal() {
+  closeDotsMenu();
+  requirePass(
+    PASS_CLOUD,
+    "☁ Доступ к настройкам облака",
+    "Введите пароль администратора облака:",
+    () => {
       const cfg = getConfig();
       document.getElementById("cBinId").value = cfg.binId;
       document.getElementById("cApiKey").value = cfg.apiKey;
       document.getElementById("cloudModal").classList.add("open");
-    });
-  }
-
-  function closeModal(id) {
-    if (id === "addModal") editingFarmId = null;
-    if (id === "reportModal") reportingFarmId = null;
-    if (id === "authModal") authCallback = null;
-    document.getElementById(id).classList.remove("open");
-  }
-
-  function saveCloudConfig() {
-    localStorage.setItem("clan_bin_id", document.getElementById("cBinId").value.trim());
-    localStorage.setItem("clan_api_key", document.getElementById("cApiKey").value.trim());
-    closeModal("cloudModal");
-    loadFarms();
-  }
-
-  async function saveFarm() {
-    const name = document.getElementById("fName").value.trim();
-    const rate = document.getElementById("fRate").value.trim();
-    if (!name || !rate) {
-      alert("Заполните название фермы и ресы/ч!");
-      return;
     }
+  );
+}
 
-    const existingFarm = editingFarmId !== null ? farms.find(f => f.id === editingFarmId) : null;
+function closeModal(id) {
+  editingFarmId = null;
+  reportingFarmId = null;
+  document.getElementById(id).classList.remove("open");
+}
 
-    const itemData = {
-      id: editingFarmId !== null ? editingFarmId : Date.now(),
-      type: document.getElementById("fType").value,
-      name,
-      dim: document.getElementById("fDim").value,
-      x: document.getElementById("fX").value || 0,
-      y: document.getElementById("fY").value || 64,
-      z: document.getElementById("fZ").value || 0,
-      rate,
-      prio: document.getElementById("fPrio").value,
-      note: document.getElementById("fNote").value.trim(),
-      author: document.getElementById("fAuthor").value.trim() || "Не указан",
-      cover: draftCover,
-      noteImgs: draftNoteImgs.slice(),
-      reports: existingFarm && Array.isArray(existingFarm.reports) ? existingFarm.reports : []
-    };
+function saveCloudConfig() {
+  localStorage.setItem("clan_bin_id", document.getElementById("cBinId").value.trim());
+  localStorage.setItem("clan_api_key", document.getElementById("cApiKey").value.trim());
+  closeModal("cloudModal");
+  loadFarms();
+}
 
-    if (editingFarmId !== null) {
-      const idx = farms.findIndex(f => f.id === editingFarmId);
-      if (idx !== -1) {
-        farms[idx] = itemData;
-      }
-    } else {
-      farms.unshift(itemData);
-    }
-
-    editingFarmId = null;
-    resetFormFields();
-    closeModal("addModal");
-    await pushFarms();
+async function saveFarm() {
+  const name = document.getElementById("fName").value.trim();
+  const rate = document.getElementById("fRate").value.trim();
+  if (!name || !rate) {
+    alert("Заполните название фермы и ресы/ч!");
+    return;
   }
 
-  function openReportModal(id) {
-    const farm = farms.find(f => f.id === id);
-    if (!farm) return;
-    reportingFarmId = id;
-    document.getElementById("reportFarmName").textContent = `Ферма: ${farm.name}`;
-    document.getElementById("rAuthor").value = "";
-    document.getElementById("rText").value = "";
-    document.getElementById("reportModal").classList.add("open");
+  const existingFarm = editingFarmId !== null ? farms.find(f => f.id === editingFarmId) : null;
+
+  const itemData = {
+    id: editingFarmId !== null ? editingFarmId : Date.now(),
+    type: document.getElementById("fType").value,
+    name,
+    dim: document.getElementById("fDim").value,
+    x: document.getElementById("fX").value || 0,
+    y: document.getElementById("fY").value || 64,
+    z: document.getElementById("fZ").value || 0,
+    rate,
+    prio: document.getElementById("fPrio").value,
+    note: document.getElementById("fNote").value.trim(),
+    author: document.getElementById("fAuthor").value.trim() || "Не указан",
+    cover: draftCover,
+    noteImgs: draftNoteImgs.slice(),
+    reports: existingFarm && Array.isArray(existingFarm.reports) ? existingFarm.reports : []
+  };
+
+  if (editingFarmId !== null) {
+    const idx = farms.findIndex(f => f.id === editingFarmId);
+    if (idx !== -1) {
+      farms[idx] = itemData;
+    }
+  } else {
+    farms.unshift(itemData);
   }
 
-  async function submitReport() {
-    const text = document.getElementById("rText").value.trim();
-    if (!text) {
-      alert("Опишите, что именно сломалось!");
-      return;
-    }
-    const author = document.getElementById("rAuthor").value.trim() || "Игрок";
-    const idx = farms.findIndex(f => f.id === reportingFarmId);
-    if (idx === -1) return;
+  editingFarmId = null;
+  resetFormFields();
+  closeModal("addModal");
+  await pushFarms();
+}
 
-    if (!Array.isArray(farms[idx].reports)) {
-      farms[idx].reports = [];
-    }
+function openReportModal(id) {
+  const farm = farms.find(f => f.id === id);
+  if (!farm) return;
+  reportingFarmId = id;
+  document.getElementById("reportFarmName").textContent = `Ферма: ${farm.name}`;
+  document.getElementById("rAuthor").value = "";
+  document.getElementById("rText").value = "";
+  document.getElementById("reportModal").classList.add("open");
+}
 
-    const now = new Date();
-    const dateStr = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) + " " +
-                    now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+async function submitReport() {
+  const text = document.getElementById("rText").value.trim();
+  if (!text) {
+    alert("Опишите, что именно сломалось!");
+    return;
+  }
+  const author = document.getElementById("rAuthor").value.trim() || "Игрок";
+  const idx = farms.findIndex(f => f.id === reportingFarmId);
+  if (idx === -1) return;
 
-    farms[idx].reports.push({
-      author,
-      text,
-      date: dateStr
-    });
-
-    reportingFarmId = null;
-    closeModal("reportModal");
-    await pushFarms();
+  if (!Array.isArray(farms[idx].reports)) {
+    farms[idx].reports = [];
   }
 
-  function clearReports(id) {
-    requireAuth(PASS_EDIT_FIX, "Чтобы снять метку поломки и удалить репорты, введите пароль:", async () => {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) + " " +
+                  now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+
+  farms[idx].reports.push({
+    author,
+    text,
+    date: dateStr
+  });
+
+  reportingFarmId = null;
+  closeModal("reportModal");
+  await pushFarms();
+}
+
+function clearReports(id) {
+  requirePass(
+    PASS_EDIT_FIX,
+    "✓ Снятие метки поломки",
+    "Введите пароль для подтверждения ремонта:",
+    async () => {
       const idx = farms.findIndex(f => f.id === id);
       if (idx === -1) return;
       farms[idx].reports = [];
       await pushFarms();
-    });
-  }
+    }
+  );
+}
 
-  function deleteFarm(id) {
-    requireAuth(PASS_EDIT_FIX, "Для удаления фермы из списка введите пароль:", async () => {
-      if (!confirm("Удалить эту ферму из списка клана?")) return;
+function deleteFarm(id) {
+  requirePass(
+    PASS_EDIT_FIX,
+    "🗑 Удаление фермы",
+    "Введите пароль для удаления фермы из реестра:",
+    async () => {
       farms = farms.filter(f => f.id !== id);
       await pushFarms();
-    });
-  }
-
-  function copyCoords(text, btn) {
-    navigator.clipboard.writeText(text);
-    const old = btn.textContent;
-    btn.textContent = "Скопировано!";
-    setTimeout(() => btn.textContent = old, 1200);
-  }
-
-  function openLightbox(src) {
-    document.getElementById("lightboxImg").src = src;
-    document.getElementById("lightbox").classList.add("open");
-  }
-
-  function closeLightbox() {
-    document.getElementById("lightbox").classList.remove("open");
-  }
-
-  function esc(str) {
-    return String(str).replace(/[&<>"']/g, s => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[s]));
-  }
-
-  function render() {
-    const q = document.getElementById("searchInput").value.toLowerCase();
-    const tf = document.getElementById("typeFilter").value;
-    const pf = document.getElementById("prioFilter").value;
-
-    document.getElementById("statTotal").textContent = farms.length;
-    document.getElementById("statBroken").textContent = farms.filter(f => Array.isArray(f.reports) && f.reports.length > 0).length;
-    document.getElementById("statCrit").textContent = farms.filter(f => f.prio === "crit").length;
-
-    const prioMap = {
-      crit: { text: "🔴 Критичный риск поломки", cls: "prio-crit" },
-      med:  { text: "🟡 Средний риск поломки", cls: "prio-med" },
-      low:  { text: "🔵 Надёжная (низкий риск)", cls: "prio-low" }
-    };
-
-    const filtered = farms.filter(f => {
-      const hasReports = Array.isArray(f.reports) && f.reports.length > 0;
-      if (tf && f.type !== tf) return false;
-      if (pf === "broken" && !hasReports) return false;
-      if (pf && pf !== "broken" && f.prio !== pf) return false;
-      const hay = `${f.name} ${f.type} ${f.dim} ${f.x} ${f.y} ${f.z} ${f.note} ${f.author}`.toLowerCase();
-      return hay.includes(q);
-    });
-
-    const grid = document.getElementById("farmsGrid");
-    if (!filtered.length) {
-      grid.innerHTML = `<div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму», чтобы создать первую запись.</div>`;
-      return;
     }
+  );
+}
 
-    grid.innerHTML = filtered.map(f => {
-      const p = prioMap[f.prio] || prioMap.low;
-      const coordStr = `${f.x} ${f.y} ${f.z}`;
-      const reports = Array.isArray(f.reports) ? f.reports : [];
-      const isBroken = reports.length > 0;
+function copyCoords(text, btn) {
+  navigator.clipboard.writeText(text);
+  const old = btn.textContent;
+  btn.textContent = "Скопировано!";
+  setTimeout(() => btn.textContent = old, 1200);
+}
 
-      const brokenBannerHtml = isBroken
-        ? `<div class="broken-banner">
-             <div class="broken-left">
-               <div class="excl-icon">!</div>
-               <div class="broken-info">
-                 <b>ТРЕБУЕТСЯ РЕМОНТ (${reports.length})</b>
-                 <span>Ферма сломана! Смотрите репорт ниже.</span>
-               </div>
+function openLightbox(src) {
+  document.getElementById("lightboxImg").src = src;
+  document.getElementById("lightbox").classList.add("open");
+}
+
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("open");
+}
+
+function esc(str) {
+  return String(str).replace(/[&<>"']/g, s => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[s]));
+}
+
+function render() {
+  const q = document.getElementById("searchInput").value.toLowerCase();
+  const tf = document.getElementById("typeFilter").value;
+  const pf = document.getElementById("prioFilter").value;
+
+  document.getElementById("statTotal").textContent = farms.length;
+  document.getElementById("statBroken").textContent = farms.filter(f => Array.isArray(f.reports) && f.reports.length > 0).length;
+  document.getElementById("statCrit").textContent = farms.filter(f => f.prio === "crit").length;
+
+  const prioMap = {
+    crit: { text: "🔴 Критичный риск поломки", cls: "prio-crit" },
+    med:  { text: "🟡 Средний риск поломки", cls: "prio-med" },
+    low:  { text: "🔵 Надёжная (низкий риск)", cls: "prio-low" }
+  };
+
+  const filtered = farms.filter(f => {
+    const hasReports = Array.isArray(f.reports) && f.reports.length > 0;
+    if (tf && f.type !== tf) return false;
+    if (pf === "broken" && !hasReports) return false;
+    if (pf && pf !== "broken" && f.prio !== pf) return false;
+    const hay = `${f.name} ${f.type} ${f.dim} ${f.x} ${f.y} ${f.z} ${f.note} ${f.author}`.toLowerCase();
+    return hay.includes(q);
+  });
+
+  const grid = document.getElementById("farmsGrid");
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму», чтобы создать первую запись.</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(f => {
+    const p = prioMap[f.prio] || prioMap.low;
+    const coordStr = `${f.x} ${f.y} ${f.z}`;
+    const reports = Array.isArray(f.reports) ? f.reports : [];
+    const isBroken = reports.length > 0;
+
+    const brokenBannerHtml = isBroken
+      ? `<div class="broken-banner">
+           <div class="broken-left">
+             <div class="excl-icon">!</div>
+             <div class="broken-info">
+               <b>ТРЕБУЕТСЯ РЕМОНТ (${reports.length})</b>
+               <span>Ферма сломана! Смотрите репорт ниже.</span>
              </div>
-             <button class="fix-btn" onclick="clearReports(${f.id})">✓ Починили</button>
-           </div>`
-        : "";
+           </div>
+           <button class="fix-btn" onclick="clearReports(${f.id})">✓ Починили</button>
+         </div>`
+      : "";
 
-      const reportsBoxHtml = isBroken
-        ? `<div class="report-box">
-             <div class="report-box-title">🚨 Репорты о поломке:</div>
-             ${reports.map(r => `<div class="report-item"><b>${esc(r.author)}</b> (${esc(r.date || "")}): ${esc(r.text)}</div>`).join("")}
-           </div>`
-        : "";
+    const reportsBoxHtml = isBroken
+      ? `<div class="report-box">
+           <div class="report-box-title">🚨 Репорты о поломке:</div>
+           ${reports.map(r => `<div class="report-item"><b>${esc(r.author)}</b> (${esc(r.date || "")}): ${esc(r.text)}</div>`).join("")}
+         </div>`
+      : "";
 
-      const coverHtml = f.cover
-        ? `<img class="card-cover" src="${f.cover}" alt="Обложка" onclick="openLightbox('${f.cover}')">`
-        : "";
-      const noteImgsHtml = (Array.isArray(f.noteImgs) && f.noteImgs.length)
-        ? `<div class="note-thumbs">${f.noteImgs.map(src => `<img class="note-thumb" src="${src}" alt="Фото уточнения" onclick="openLightbox('${src}')">`).join("")}</div>`
-        : "";
+    const coverHtml = f.cover
+      ? `<img class="card-cover" src="${f.cover}" alt="Обложка" onclick="openLightbox('${f.cover}')">`
+      : "";
+    const noteImgsHtml = (Array.isArray(f.noteImgs) && f.noteImgs.length)
+      ? `<div class="note-thumbs">${f.noteImgs.map(src => `<img class="note-thumb" src="${src}" alt="Фото уточнения" onclick="openLightbox('${src}')">`).join("")}</div>`
+      : "";
 
-      return `
-        <div class="card ${isBroken ? "broken" : ""}">
-          ${brokenBannerHtml}
-          ${coverHtml}
-          <div class="card-body">
-            <div>
-              <div class="card-top">
-                <span class="type-badge">${esc(f.type)}</span>
-                <span class="prio-badge ${p.cls}">${p.text}</span>
-              </div>
-              <h3>${esc(f.name)}</h3>
+    return `
+      <div class="card ${isBroken ? "broken" : ""}">
+        ${brokenBannerHtml}
+        ${coverHtml}
+        <div class="card-body">
+          <div>
+            <div class="card-top">
+              <span class="type-badge">${esc(f.type)}</span>
+              <span class="prio-badge ${p.cls}">${p.text}</span>
             </div>
-            ${reportsBoxHtml}
-            <div class="info-row">
-              <span>🌍 ${esc(f.dim)}: <b class="coords">${esc(coordStr)}</b></span>
-              <button class="copy-btn" onclick="copyCoords('${esc(coordStr)}', this)">Копировать</button>
-            </div>
-            <div class="info-row">
-              <span>⚡ Ресы/ч:</span>
-              <b>${esc(f.rate)}</b>
-            </div>
-            ${f.note ? `<div class="note">${esc(f.note)}</div>` : ""}
-            ${noteImgsHtml}
+            <h3>${esc(f.name)}</h3>
           </div>
-          <div class="card-foot">
-            <span>Построил: <b>${esc(f.author)}</b></span>
-            <div class="card-foot-actions">
-              <button class="report-btn" onclick="openReportModal(${f.id})">⚠ Репорт</button>
-              <button class="edit-btn" onclick="openEditModal(${f.id})">Редактировать</button>
-              <button class="danger" onclick="deleteFarm(${f.id})">Удалить</button>
-            </div>
+          ${reportsBoxHtml}
+          <div class="info-row">
+            <span>🌍 ${esc(f.dim)}: <b class="coords">${esc(coordStr)}</b></span>
+            <button class="copy-btn" onclick="copyCoords('${esc(coordStr)}', this)">Копировать</button>
+          </div>
+          <div class="info-row">
+            <span>⚡ Ресы/ч:</span>
+            <b>${esc(f.rate)}</b>
+          </div>
+          ${f.note ? `<div class="note">${esc(f.note)}</div>` : ""}
+          ${noteImgsHtml}
+        </div>
+        <div class="card-foot">
+          <span>Построил: <b>${esc(f.author)}</b></span>
+          <div class="card-foot-actions">
+            <button class="report-btn" onclick="openReportModal(${f.id})">⚠ Репорт</button>
+            <button class="edit-btn" onclick="openEditModal(${f.id})">Редактировать</button>
+            <button class="danger" onclick="deleteFarm(${f.id})">Удалить</button>
           </div>
         </div>
-      `;
-    }).join("");
-  }
+      </div>
+    `;
+  }).join("");
+}
 
-  loadFarms();
+loadFarms();
 </script>
 </body>
 </html>
