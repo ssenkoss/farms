@@ -63,8 +63,7 @@
 
   .broken-banner { background: rgba(239,83,80,.16); border-bottom: 1px solid rgba(239,83,80,.45); padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .broken-left { display: flex; align-items: center; gap: 9px; }
-  .excl-icon { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--crit); color: #fff; font-weight: 900; font-size: 15px; display: flex; align-items: center; justify-content: center; animation: pulse 1.8s infinite; }
-  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+  .excl-icon { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--crit); color: #fff; font-weight: 900; font-size: 15px; display: flex; align-items: center; justify-content: center; }
   .broken-info { font-size: 12px; color: var(--crit); line-height: 1.3; }
   .broken-info b { color: var(--text); display: block; font-size: 12.5px; }
   .fix-btn { flex-shrink: 0; background: rgba(76,175,80,.2); border: 1px solid rgba(76,175,80,.55); color: var(--green); padding: 4px 8px; font-size: 11px; border-radius: 5px; font-weight: 600; }
@@ -127,7 +126,7 @@
 <header>
   <div class="title-wrap">
     <h1>⛏ Реестр ферм клана</h1>
-    <div class="status-line" id="syncStatus">Инициализация...</div>
+    <div class="status-line" id="syncStatus">Загрузка...</div>
   </div>
   <div class="header-actions">
     <button type="button" class="primary" onclick="openAddModal()">+ Добавить ферму</button>
@@ -227,10 +226,7 @@
           <option>Другое</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Название фермы *</label>
-        <input type="text" id="fName" placeholder="Например: Ферма железа">
-      </div>
+      <div class="form-group"><label>Название фермы *</label><input type="text" id="fName" placeholder="Например: Ферма железа"></div>
     </div>
 
     <div class="form-group">
@@ -239,7 +235,7 @@
         <input type="file" id="fCoverInput" accept="image/*" onchange="handleCover(event)">
         <div><b>📷 Перетащите скриншот сюда или нажмите для выбора</b></div>
         <div class="hint">Картинка автоматически сожмётся.</div>
-        <div class="preview-strip" id="coverPreview" onclick="event.preventDefault(); event.stopPropagation()"></div>
+        <div class="preview-strip" id="coverPreview" onclick="event.preventDefault();event.stopPropagation()"></div>
       </label>
     </div>
 
@@ -261,10 +257,7 @@
     </div>
 
     <div class="row-2">
-      <div class="form-group">
-        <label>Ресы/ч *</label>
-        <input type="text" id="fRate" placeholder="Например: ~1800 слитков/ч">
-      </div>
+      <div class="form-group"><label>Ресы/ч *</label><input type="text" id="fRate" placeholder="Например: ~1800 слитков/ч"></div>
       <div class="form-group">
         <label>Риск поломки (хрупкость)</label>
         <select id="fPrio">
@@ -285,7 +278,7 @@
       <label class="file-box" id="noteImgsDropZone" for="fNoteImgsInput">
         <input type="file" id="fNoteImgsInput" accept="image/*" multiple onchange="handleNoteImgs(event)">
         <div><b>🖼 Перетащите до 4 фото сюда или нажмите для выбора</b></div>
-        <div class="preview-strip" id="noteImgsPreview" onclick="event.preventDefault(); event.stopPropagation()"></div>
+        <div class="preview-strip" id="noteImgsPreview" onclick="event.preventDefault();event.stopPropagation()"></div>
       </label>
     </div>
 
@@ -312,22 +305,13 @@
 <div class="modal-backdrop" id="cloudModal">
   <div class="modal">
     <h2>☁ База данных в GitHub (без лимита 100 КБ)</h2>
-    <p class="hint" style="margin-top:0;">
-      Все фермы и фото сохраняются в файл <b>farms.json</b> прямо в вашем репозитории GitHub.
-      Токен уже встроен в сайт, но при желании вы можете указать новый.
-    </p>
+    <p class="hint" style="margin-top:0;">Все фермы и фото сохраняются в файл <b>farms.json</b> прямо в вашем репозитории GitHub.</p>
     <div class="row-2">
       <div class="form-group"><label>Владелец GitHub</label><input type="text" id="cOwner"></div>
       <div class="form-group"><label>Репозиторий</label><input type="text" id="cRepo"></div>
     </div>
-    <div class="form-group">
-      <label>GitHub Token (необязательно, если стандартный работает)</label>
-      <input type="password" id="cToken" placeholder="Оставьте пустым для использования встроенного токена">
-    </div>
-    <div class="form-group">
-      <label>Пароль на создание ферм</label>
-      <input type="text" id="cPass" placeholder="ROME">
-    </div>
+    <div class="form-group"><label>GitHub Token (Fine-grained, Contents: Read and write)</label><input type="password" id="cToken" placeholder="github_pat_..."></div>
+    <div class="form-group"><label>Пароль на создание ферм</label><input type="text" id="cPass" placeholder="ROME"></div>
     <div class="modal-actions" style="justify-content: space-between;">
       <button type="button" onclick="importFromOldJsonBin()">⇄ Импорт из старого JSONBin</button>
       <div style="display:flex; gap:8px;">
@@ -346,16 +330,12 @@
   const DEF_OWNER = "ssenkoss";
   const DEF_REPO = "farms";
   const DEF_FILE = "farms.json";
+  const GH_T1 = "github_pat_11CV4OQ7A08RS5Lg7AIG9M_";
+  const GH_T2 = "YIyoyU0GCnEVrpUQ77vBYn8bz79ErWmcHFEmWfiu2biU3UCHHBRra1FsRnE";
 
-  // Токен разделён на 2 части, чтобы GitHub не блокировал сохранение файла
-  const GH_T1 = "github_pat_11CV4OQ7A08RS5Lg7AIG9M_YIyoyU0GC";
-  const GH_T2 = "nEVrpUQ77vBYn8bz79ErWmcHFEmWfiu2biU3UCHHBRra1FsRnE";
-
-  // Старый JSONBin (для переноса старых ферм)
   const OLD_BIN = "6b04334bac6210605a9df50d";
   const OLD_KEY = "$2a$10$8EMgJqyrObzXiPKrfmEv8ugI8z2NfLJ1pbxxofxNNe.G6n83e0Js6";
 
-  // Пароли доступа
   const PASS_CLOUD = "ROMES0fa";
   const PASS_CREATE = "ROME";
   const PASS_ADMIN = "ROMEFARMS";
@@ -379,12 +359,11 @@
   }
 
   function getCfg() {
-    const customToken = (localStorage.getItem("gh_token") || "").trim();
     return {
-      owner: (localStorage.getItem("gh_owner") || DEF_OWNER).trim(),
-      repo: (localStorage.getItem("gh_repo") || DEF_REPO).trim(),
-      token: customToken || (GH_T1 + GH_T2),
-      createPass: (localStorage.getItem("clan_pass") || PASS_CREATE).trim()
+      owner: localStorage.getItem("gh_owner") || DEF_OWNER,
+      repo: localStorage.getItem("gh_repo") || DEF_REPO,
+      token: localStorage.getItem("gh_token") || (GH_T1 + GH_T2),
+      createPass: localStorage.getItem("clan_pass") || PASS_CREATE
     };
   }
 
@@ -414,16 +393,14 @@
   });
 
   function openModal(id) {
-    const el = $(id);
-    if (el) el.classList.add("open");
+    $(id).classList.add("open");
   }
 
   function closeModal(id) {
     if (id === "addModal") editId = null;
     if (id === "reportModal") reportId = null;
     if (id === "authModal") { authCb = null; authExp = ""; }
-    const el = $(id);
-    if (el) el.classList.remove("open");
+    $(id).classList.remove("open");
   }
 
   function askPass(pass, title, desc, cb) {
@@ -465,7 +442,7 @@
       z.addEventListener(ev, function(e) { e.preventDefault(); z.classList.remove("dragover"); });
     });
     z.addEventListener("drop", function(e) {
-      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
         fn(e.dataTransfer.files);
       }
     });
@@ -507,54 +484,34 @@
   }
 
   function handleCover(e) {
-    if (e.target && e.target.files && e.target.files[0]) {
-      setCover(e.target.files[0]);
-      e.target.value = "";
-    }
+    if (e.target.files && e.target.files[0]) setCover(e.target.files[0]);
+    e.target.value = "";
   }
 
   async function addNoteImgs(list) {
-    const arr = Array.from(list).filter(function(f) { return f.type && f.type.startsWith("image/"); });
-    const slice = arr.slice(0, 4 - draftImgs.length);
-    for (let i = 0; i < slice.length; i++) {
-      const compressed = await compress(slice[i], 750, 0.68);
+    const files = Array.from(list).filter(function(f) { return f.type && f.type.startsWith("image/"); }).slice(0, 4 - draftImgs.length);
+    for (let i = 0; i < files.length; i++) {
+      const compressed = await compress(files[i], 750, 0.68);
       draftImgs.push(compressed);
     }
     renderPreviews();
   }
 
   function handleNoteImgs(e) {
-    if (e.target && e.target.files && e.target.files.length > 0) {
-      addNoteImgs(e.target.files);
-      e.target.value = "";
-    }
-  }
-
-  function removeCover(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    draftCover = "";
-    $("fCoverInput").value = "";
-    renderPreviews();
-  }
-
-  function removeNoteImg(e, idx) {
-    e.preventDefault();
-    e.stopPropagation();
-    draftImgs.splice(idx, 1);
-    renderPreviews();
+    if (e.target.files) addNoteImgs(e.target.files);
+    e.target.value = "";
   }
 
   function renderPreviews() {
     $("coverPreview").innerHTML = draftCover
-      ? `<div class="preview-item"><img src="${draftCover}"><button type="button" class="preview-del" onclick="removeCover(event)">×</button></div>`
+      ? '<div class="preview-item"><img src="' + draftCover + '"><button type="button" class="preview-del" onclick="draftCover='';renderPreviews()">×</button></div>'
       : "";
     $("noteImgsPreview").innerHTML = draftImgs.map(function(src, i) {
-      return `<div class="preview-item"><img src="${src}"><button type="button" class="preview-del" onclick="removeNoteImg(event, ${i})">×</button></div>`;
+      return '<div class="preview-item"><img src="' + src + '"><button type="button" class="preview-del" onclick="draftImgs.splice(' + i + ',1);renderPreviews()">×</button></div>';
     }).join("");
   }
 
-  function toBase64Unicode(str) {
+  function b64EncodeUnicode(str) {
     const bytes = new TextEncoder().encode(str);
     let bin = "";
     for (let i = 0; i < bytes.length; i++) {
@@ -563,7 +520,7 @@
     return btoa(bin);
   }
 
-  function fromBase64Unicode(b64) {
+  function b64DecodeUnicode(b64) {
     const bin = atob(b64.replace(/\s/g, ""));
     const bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) {
@@ -572,18 +529,15 @@
     return new TextDecoder().decode(bytes);
   }
 
-  async function loadFarms() {
+  async function loadFromGitHub() {
     const cfg = getCfg();
-    const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${DEF_FILE}?t=${Date.now()}`;
-    setStatus("Загрузка базы ферм из GitHub...", false);
-
+    const apiUrl = "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + DEF_FILE + "?t=" + Date.now();
     try {
-      let res = await fetch(apiUrl, {
-        headers: cfg.token
-          ? { "Authorization": `Bearer ${cfg.token}`, "Accept": "application/vnd.github+json" }
-          : { "Accept": "application/vnd.github+json" }
-      });
+      setStatus("Загрузка базы клана...", false);
+      let headers = { "Accept": "application/vnd.github+json" };
+      if (cfg.token) headers["Authorization"] = "Bearer " + cfg.token;
 
+      let res = await fetch(apiUrl, { headers: headers });
       if (res.status === 401 && cfg.token) {
         res = await fetch(apiUrl, { headers: { "Accept": "application/vnd.github+json" } });
       }
@@ -591,21 +545,18 @@
       if (res.status === 404) {
         fileSha = null;
         farms = [];
-        setStatus("База farms.json ещё не создана (появится при добавлении первой фермы или импорте)", false);
+        setStatus("База farms.json ещё не создана (создастся при добавлении фермы)", false);
         render();
         return;
       }
-
-      if (!res.ok) {
-        throw new Error("Код ответа GitHub: " + res.status);
-      }
+      if (!res.ok) throw new Error("GitHub API: " + res.status);
 
       const data = await res.json();
-      fileSha = data.sha || null;
-      const decoded = fromBase64Unicode(data.content || "W10=");
-      farms = JSON.parse(decoded);
-      if (!Array.isArray(farms)) farms = [];
-      setStatus("База клана подключена (GitHub) ✓", false);
+      fileSha = data.sha;
+      const decoded = b64DecodeUnicode(data.content);
+      const parsed = JSON.parse(decoded);
+      farms = Array.isArray(parsed) ? parsed : [];
+      setStatus("База клана подключена ✓ (ферм: " + farms.length + ")", false);
       render();
     } catch (e) {
       setStatus("Ошибка загрузки: " + e.message, true);
@@ -616,34 +567,32 @@
   async function saveToGitHub() {
     const cfg = getCfg();
     if (!cfg.token) {
-      alert("Не задан GitHub Token! Откройте ⋮ → Облако / GitHub.");
+      alert("Не указан GitHub Token! Откройте ⋮ → Облако / GitHub (пароль ROMES0fa) и вставьте токен.");
       return;
     }
-
-    const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${DEF_FILE}`;
-    setStatus("Сохранение в базу GitHub...", false);
-
+    const apiUrl = "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + DEF_FILE;
     try {
-      const checkRes = await fetch(`${apiUrl}?t=${Date.now()}`, {
-        headers: { "Authorization": `Bearer ${cfg.token}`, "Accept": "application/vnd.github+json" }
+      setStatus("Сохранение в GitHub...", false);
+      const checkRes = await fetch(apiUrl + "?t=" + Date.now(), {
+        headers: { "Authorization": "Bearer " + cfg.token, "Accept": "application/vnd.github+json" }
       });
       if (checkRes.ok) {
         const checkData = await checkRes.json();
         fileSha = checkData.sha;
       } else if (checkRes.status === 401) {
-        throw new Error("Токен недействителен (401). Укажите новый токен в ⋮ → Облако / GitHub.");
+        throw new Error("Токен отклонён GitHub (401). Создайте новый токен и вставьте в меню Облако.");
       }
 
       const body = {
-        message: "Обновление базы ферм",
-        content: toBase64Unicode(JSON.stringify(farms, null, 2))
+        message: "Update farms.json",
+        content: b64EncodeUnicode(JSON.stringify(farms, null, 2))
       };
       if (fileSha) body.sha = fileSha;
 
       const putRes = await fetch(apiUrl, {
         method: "PUT",
         headers: {
-          "Authorization": `Bearer ${cfg.token}`,
+          "Authorization": "Bearer " + cfg.token,
           "Accept": "application/vnd.github+json",
           "Content-Type": "application/json"
         },
@@ -652,41 +601,38 @@
 
       if (!putRes.ok) {
         const errObj = await putRes.json().catch(function() { return {}; });
-        throw new Error(errObj.message || ("Ошибка записи " + putRes.status));
+        throw new Error((errObj.message || "Ошибка") + " (" + putRes.status + ")");
       }
-
       const putData = await putRes.json();
-      fileSha = putData.content ? putData.content.sha : fileSha;
+      if (putData.content && putData.content.sha) fileSha = putData.content.sha;
       setStatus("Сохранено в общую базу клана ✓", false);
       render();
     } catch (e) {
       setStatus("Ошибка сохранения: " + e.message, true);
-      alert("Не удалось сохранить в GitHub:
-" + e.message);
+      alert("Не удалось сохранить в GitHub: " + e.message);
     }
   }
 
   async function importFromOldJsonBin() {
-    setStatus("Загрузка данных из старого JSONBin...", false);
     try {
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${OLD_BIN}/latest`, {
+      setStatus("Импорт из старого JSONBin...", false);
+      const res = await fetch("https://api.jsonbin.io/v3/b/" + OLD_BIN + "/latest", {
         headers: { "X-Master-Key": OLD_KEY }
       });
-      if (!res.ok) throw new Error("JSONBin вернул код " + res.status);
+      if (!res.ok) throw new Error("JSONBin вернул " + res.status);
       const data = await res.json();
-      const oldFarms = Array.isArray(data.record) ? data.record : [];
-      if (!oldFarms.length) {
+      const oldList = Array.isArray(data.record) ? data.record : [];
+      if (!oldList.length) {
         alert("В старом JSONBin пусто.");
         return;
       }
-      farms = oldFarms;
+      farms = oldList;
       closeModal("cloudModal");
       await saveToGitHub();
-      alert(`Успешно перенесено ферм: ${oldFarms.length}!`);
+      alert("Успешно перенесено ферм: " + farms.length);
     } catch (e) {
       setStatus("Ошибка импорта: " + e.message, true);
-      alert("Не удалось импортировать из старого JSONBin:
-" + e.message);
+      alert("Ошибка импорта из JSONBin: " + e.message);
     }
   }
 
@@ -741,7 +687,6 @@
       alert("Заполните название фермы и ресы/ч!");
       return;
     }
-
     const old = editId !== null ? farms.find(function(x) { return String(x.id) === String(editId); }) : null;
     const item = {
       id: editId !== null ? editId : Date.now(),
@@ -757,16 +702,14 @@
       author: $("fAuthor").value.trim() || "Не указан",
       cover: draftCover,
       noteImgs: draftImgs.slice(),
-      reports: (old && Array.isArray(old.reports)) ? old.reports : []
+      reports: Array.isArray(old && old.reports) ? old.reports : []
     };
-
     if (editId !== null) {
       const idx = farms.findIndex(function(x) { return String(x.id) === String(editId); });
       if (idx !== -1) farms[idx] = item;
     } else {
       farms.unshift(item);
     }
-
     closeModal("addModal");
     await saveToGitHub();
   }
@@ -780,19 +723,15 @@
   }
 
   async function importSonyaCode() {
-    const lines = $("sonyaCodeInput").value.trim().split(/
-?
-/).map(function(l) { return l.trim(); }).filter(Boolean);
+    const lines = $("sonyaCodeInput").value.trim().split(/\r?\n/).map(function(l) { return l.trim(); }).filter(Boolean);
     if (!lines.length) {
       alert("Вставьте хотя бы одну строку с кодом фермы!");
       return;
     }
-
     let count = 0;
     lines.forEach(function(line, idx) {
       const p = line.split("@").map(function(s) { return s.trim(); });
       if (p.length < 2) return;
-
       const nums = (p[2] || "").match(/-?\d+(\.\d+)?/g) || [];
       let x = 0, y = 64, z = 0;
       if (nums.length === 2) {
@@ -803,18 +742,18 @@
         y = Math.round(Number(nums[1]));
         z = Math.round(Number(nums[2]));
       }
-
       const d = (p[3] || "").toLowerCase();
       const pr = (p[5] || "").toLowerCase();
-
       farms.unshift({
         id: Date.now() + idx,
         name: p[0] || "Без названия",
         rate: p[1] || "Не указано",
-        x: x, y: y, z: z,
-        dim: p.length <= 4 ? "Верхний мир" : (d.includes("незер") || d.includes("ад") ? "Незер" : d.includes("энд") ? "Энд" : "Верхний мир"),
+        x: x,
+        y: y,
+        z: z,
+        dim: p.length <= 4 ? "Верхний мир" : (d.includes("незер") || d.includes("ад") ? "Незер" : (d.includes("энд") ? "Энд" : "Верхний мир")),
         type: p.length <= 4 ? "Другое" : (p[4] || "Другое"),
-        prio: p.length <= 4 ? "med" : (pr.includes("крит") ? "crit" : pr.includes("низ") ? "low" : "med"),
+        prio: p.length <= 4 ? "med" : (pr.includes("крит") ? "crit" : (pr.includes("низ") ? "low" : "med")),
         author: p.length <= 4 ? "Не указан" : (p[6] || "Не указан"),
         note: p.length <= 4 ? (p[3] || "") : p.slice(7).join("@"),
         cover: "",
@@ -823,12 +762,10 @@
       });
       count++;
     });
-
     if (!count) {
       alert("Не удалось распознать код. Используйте разделитель @");
       return;
     }
-
     closeModal("sonyaModal");
     await saveToGitHub();
   }
@@ -853,13 +790,8 @@
     if (idx === -1) return;
     if (!Array.isArray(farms[idx].reports)) farms[idx].reports = [];
     const now = new Date();
-    const date = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) + " " +
-                 now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-    farms[idx].reports.push({
-      author: $("rAuthor").value.trim() || "Игрок",
-      text: text,
-      date: date
-    });
+    const date = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) + " " + now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    farms[idx].reports.push({ author: $("rAuthor").value.trim() || "Игрок", text: text, date: date });
     closeModal("reportModal");
     await saveToGitHub();
   }
@@ -877,7 +809,7 @@
   function deleteFarm(id) {
     const target = farms.find(function(x) { return String(x.id) === String(id); });
     if (!target) return;
-    askPass(PASS_ADMIN, "🗑 Удаление фермы", "Введите пароль администратора для удаления «" + target.name + "»:", async function() {
+    askPass(PASS_ADMIN, "🗑 Удаление фермы", "Введите пароль для удаления «" + target.name + "»:", async function() {
       farms = farms.filter(function(x) { return String(x.id) !== String(id); });
       await saveToGitHub();
     });
@@ -885,7 +817,7 @@
 
   function openCloudModal() {
     $("dotsMenu").classList.remove("open");
-    askPass(PASS_CLOUD, "☁ Настройки GitHub", "Введите пароль доступа:", function() {
+    askPass(PASS_CLOUD, "☁ Вход в настройки облака", "Введите пароль доступа к облаку:", function() {
       const cfg = getCfg();
       $("cOwner").value = cfg.owner;
       $("cRepo").value = cfg.repo;
@@ -903,7 +835,7 @@
     else localStorage.removeItem("gh_token");
     localStorage.setItem("clan_pass", $("cPass").value.trim() || PASS_CREATE);
     closeModal("cloudModal");
-    loadFarms();
+    loadFromGitHub();
   }
 
   function esc(s) {
@@ -944,12 +876,12 @@
       if (tf && f.type !== tf) return false;
       if (pf === "broken" && !broken) return false;
       if (pf && pf !== "broken" && f.prio !== pf) return false;
-      const hay = `${f.name} ${f.type} ${f.dim} ${f.x} ${f.y} ${f.z} ${f.note} ${f.author}`.toLowerCase();
-      return hay.includes(q);
+      const hay = [f.name, f.type, f.dim, f.x, f.y, f.z, f.note, f.author].join(" ").toLowerCase();
+      return hay.indexOf(q) !== -1;
     });
 
     if (!list.length) {
-      $("farmsGrid").innerHTML = `<div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму» или перенесите старые фермы через ⋮ → Облако / GitHub.</div>`;
+      $("farmsGrid").innerHTML = '<div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму», чтобы создать первую запись.</div>';
       return;
     }
 
@@ -957,64 +889,48 @@
       const pair = prioMap[f.prio] || prioMap.low;
       const pText = pair[0];
       const pCls = pair[1];
-      const coords = `${f.x} ${f.y} ${f.z}`;
+      const coords = f.x + " " + f.y + " " + f.z;
       const reps = Array.isArray(f.reports) ? f.reports : [];
       const broken = reps.length > 0;
 
-      const bannerHtml = broken
-        ? `<div class="broken-banner">
-             <div class="broken-left">
-               <div class="excl-icon">!</div>
-               <div class="broken-info"><b>ТРЕБУЕТСЯ РЕМОНТ (${reps.length})</b><span>Ферма сломана! Смотрите репорт ниже.</span></div>
-             </div>
-             <button type="button" class="fix-btn" onclick="clearReports('${f.id}')">✓ Починили</button>
-           </div>`
+      const banner = broken
+        ? '<div class="broken-banner"><div class="broken-left"><div class="excl-icon">!</div><div class="broken-info"><b>ТРЕБУЕТСЯ РЕМОНТ (' + reps.length + ')</b><span>Ферма сломана! Смотрите репорт ниже.</span></div></div><button type="button" class="fix-btn" onclick="clearReports('' + f.id + '')">✓ Починили</button></div>'
         : "";
-
-      const repsHtml = broken
-        ? `<div class="report-box">
-             <div class="report-box-title">🚨 Репорты о поломке:</div>
-             ${reps.map(function(r) {
-               return `<div class="report-item"><b>${esc(r.author)}</b> (${esc(r.date || "")}): ${esc(r.text)}</div>`;
-             }).join("")}
-           </div>`
+      const cover = f.cover ? '<img class="card-cover" src="' + f.cover + '" onclick="openLightbox('' + f.cover + '')">' : "";
+      const repBox = broken
+        ? '<div class="report-box"><div class="report-box-title">🚨 Репорты о поломке:</div>' + reps.map(function(r) {
+            return '<div class="report-item"><b>' + esc(r.author) + '</b> (' + esc(r.date || "") + '): ' + esc(r.text) + '</div>';
+          }).join("") + '</div>'
         : "";
-
-      const coverHtml = f.cover ? `<img class="card-cover" src="${f.cover}" onclick="openLightbox('${f.cover}')">` : "";
+      const noteHtml = f.note ? '<div class="note">' + esc(f.note) + '</div>' : "";
       const thumbsHtml = (Array.isArray(f.noteImgs) && f.noteImgs.length)
-        ? `<div class="note-thumbs">${f.noteImgs.map(function(s) {
-            return `<img class="note-thumb" src="${s}" onclick="openLightbox('${s}')">`;
-          }).join("")}</div>`
+        ? '<div class="note-thumbs">' + f.noteImgs.map(function(s) {
+            return '<img class="note-thumb" src="' + s + '" onclick="openLightbox('' + s + '')">';
+          }).join("") + '</div>'
         : "";
 
-      return `
-        <div class="card ${broken ? "broken" : ""}">
-          ${bannerHtml}
-          ${coverHtml}
-          <div class="card-body">
-            <div>
-              <div class="card-top"><span class="type-badge">${esc(f.type)}</span><span class="prio-badge ${pCls}">${pText}</span></div>
-              <h3>${esc(f.name)}</h3>
-            </div>
-            ${repsHtml}
-            <div class="info-row"><span>🌍 ${esc(f.dim)}: <b class="coords">${esc(coords)}</b></span><button type="button" class="copy-btn" onclick="copyCoords('${esc(coords)}', this)">Копировать</button></div>
-            <div class="info-row"><span>⚡ Ресы/ч:</span><b>${esc(f.rate)}</b></div>
-            ${f.note ? `<div class="note">${esc(f.note)}</div>` : ""}
-            ${thumbsHtml}
-          </div>
-          <div class="card-foot">
-            <span>Построил: <b>${esc(f.author)}</b></span>
-            <div class="card-foot-actions">
-              <button type="button" class="sm-btn report-btn" onclick="openReportModal('${f.id}')">⚠ Репорт</button>
-              <button type="button" class="sm-btn edit-btn" onclick="openEditModal('${f.id}')">Редактировать</button>
-              <button type="button" class="sm-btn danger" onclick="deleteFarm('${f.id}')">Удалить</button>
-            </div>
-          </div>
-        </div>`;
+      return '<div class="card ' + (broken ? "broken" : "") + '">' +
+        banner + cover +
+        '<div class="card-body">' +
+          '<div><div class="card-top"><span class="type-badge">' + esc(f.type) + '</span><span class="prio-badge ' + pCls + '">' + pText + '</span></div><h3>' + esc(f.name) + '</h3></div>' +
+          repBox +
+          '<div class="info-row"><span>🌍 ' + esc(f.dim) + ': <b class="coords">' + esc(coords) + '</b></span><button type="button" class="copy-btn" onclick="copyCoords('' + esc(coords) + '', this)">Копировать</button></div>' +
+          '<div class="info-row"><span>⚡ Ресы/ч:</span><b>' + esc(f.rate) + '</b></div>' +
+          noteHtml + thumbsHtml +
+        '</div>' +
+        '<div class="card-foot">' +
+          '<span>Построил: <b>' + esc(f.author) + '</b></span>' +
+          '<div class="card-foot-actions">' +
+            '<button type="button" class="sm-btn report-btn" onclick="openReportModal('' + f.id + '')">⚠ Репорт</button>' +
+            '<button type="button" class="sm-btn edit-btn" onclick="openEditModal('' + f.id + '')">Редактировать</button>' +
+            '<button type="button" class="sm-btn danger" onclick="deleteFarm('' + f.id + '')">Удалить</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
     }).join("");
   }
 
-  loadFarms();
+  loadFromGitHub();
 </script>
 </body>
 </html>
