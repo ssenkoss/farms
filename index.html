@@ -52,7 +52,7 @@
   .filters { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
   .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-  @media (max-width: 720px) { .filters, .row-2 { grid-template-columns: 1fr; } }
+  @media (max-width: 720px) { .filters, .row-2, .row-3 { grid-template-columns: 1fr; } }
 
   input, select, textarea { width: 100%; background: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 9px 12px; border-radius: 6px; font-size: 13px; font-family: inherit; }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--green); }
@@ -97,10 +97,12 @@
 
   .modal-backdrop, .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.78); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
   .modal-backdrop.open, .lightbox.open { display: flex; }
-  .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto; padding: 20px; }
+  .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; padding: 20px; }
   .modal.modal-sm { max-width: 390px; }
   .modal h2 { margin: 0 0 14px; font-size: 18px; }
-  .form-group { margin-bottom: 12px; }
+  .section-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 14px; }
+  .section-box h3 { margin: 0 0 8px; font-size: 14px; color: var(--text); }
+  .form-group { margin-bottom: 10px; }
   .form-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
   .pass-row input { flex: 1; }
   .pass-eye { padding: 0 12px; font-size: 15px; }
@@ -113,10 +115,10 @@
   .preview-item { position: relative; width: 82px; height: 60px; }
   .preview-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 5px; border: 1px solid var(--border); background: #000; }
   .preview-del { position: absolute; top: -6px; right: -6px; background: var(--crit); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; padding: 0; font-size: 12px; line-height: 20px; text-align: center; }
-  .modal-actions { justify-content: flex-end; margin-top: 16px; }
+  .modal-actions { justify-content: flex-end; margin-top: 14px; }
   .empty { grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--muted); background: var(--panel); border: 1px dashed var(--border); border-radius: 10px; }
   .hint { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
-  .code-example { background: var(--panel-2); border: 1px solid var(--border); padding: 8px 10px; border-radius: 6px; font-family: monospace; font-size: 11.5px; margin-bottom: 10px; white-space: pre-wrap; word-break: break-word; }
+  .code-example { background: var(--panel); border: 1px solid var(--border); padding: 8px 10px; border-radius: 6px; font-family: monospace; font-size: 11.5px; margin-bottom: 10px; white-space: pre-wrap; word-break: break-word; }
 
   .lightbox { z-index: 100; background: rgba(0,0,0,.88); cursor: zoom-out; }
   .lightbox img { max-width: 95vw; max-height: 92vh; border-radius: 8px; border: 1px solid var(--border); }
@@ -182,18 +184,49 @@
   </div>
 </div>
 
+<!-- Объединённое меню «Для Сони» + управление паролями -->
 <div class="modal-backdrop" id="sonyaModal">
   <div class="modal">
-    <h2>📥 Быстрая вставка фермы кодом (для Сони)</h2>
-    <p class="hint" style="margin-top:0;">Вставьте код фермы (каждая с новой строки):</p>
-    <div class="code-example">Формат: Название@Ресы/ч@X Y Z@Мир@Тип@Риск@Автор@Описание
+    <h2>📥 Для Сони — Вставка кодом и пароли</h2>
+
+    <div class="section-box">
+      <h3>1. Быстрое добавление ферм кодом</h3>
+      <p class="hint" style="margin-top:0;">Вставьте код фермы (можно несколько строк подряд):</p>
+      <div class="code-example">Формат: Название@Ресы/ч@X Y Z@Мир@Тип@Риск@Автор@Описание
 Пример: Физер розы@17к/ч@-1015 64 5771@Верхний мир@Еда / Растения@крит@parolb@Кидать зелья раз в 2 мин 50 сек</div>
-    <div class="form-group">
-      <textarea id="sonyaCodeInput" rows="5" placeholder="Физер розы@17к/ч@-1015 64 5771@Верхний мир@Еда / Растения@крит@parolb@Описание..."></textarea>
+      <div class="form-group" style="margin-bottom:8px;">
+        <textarea id="sonyaCodeInput" rows="4" placeholder="Физер розы@17к/ч@-1015 64 5771@Верхний мир@Еда / Растения@крит@parolb@Описание..."></textarea>
+      </div>
+      <div style="display:flex; justify-content:flex-end;">
+        <button type="button" class="primary" onclick="importSonyaCode()">+ Добавить по коду</button>
+      </div>
     </div>
+
+    <div class="section-box" style="margin-bottom:0;">
+      <h3>2. Настройка всех паролей сайта (для всего клана)</h3>
+      <p class="hint" style="margin-top:0; margin-bottom:10px;">Сохраняются в общую базу GitHub — начнут действовать сразу у всех участников клана.</p>
+      <div class="row-3">
+        <div class="form-group">
+          <label>Создание ферм</label>
+          <input type="text" id="pCreateInput" placeholder="ROME">
+        </div>
+        <div class="form-group">
+          <label>Редакт / Удаление / Репорты</label>
+          <input type="text" id="pAdminInput" placeholder="ROMEFARMS">
+        </div>
+        <div class="form-group">
+          <label>Вход в Облако / Для Сони</label>
+          <input type="text" id="pCloudInput" placeholder="ROMES0fa">
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+        <span class="hint" id="passSaveHint">По умолчанию: ROME / ROMEFARMS / ROMES0fa</span>
+        <button type="button" class="primary" onclick="savePasswordsToDb()">Сохранить все пароли</button>
+      </div>
+    </div>
+
     <div class="modal-actions">
-      <button type="button" onclick="closeModal('sonyaModal')">Отмена</button>
-      <button type="button" class="primary" onclick="importSonyaCode()">Добавить в список</button>
+      <button type="button" onclick="closeModal('sonyaModal')">Закрыть</button>
     </div>
   </div>
 </div>
@@ -282,13 +315,12 @@
 <div class="modal-backdrop" id="cloudModal">
   <div class="modal">
     <h2>☁ База клана в GitHub (farms.json)</h2>
-    <p class="hint" style="margin-top:0;">Защита от перезаписи активна: сохранение невозможно, если база не загрузилась.</p>
+    <p class="hint" style="margin-top:0;">Защита от перезаписи активна. Смена паролей находится в меню <b>⋮ → Для Сони</b>.</p>
     <div class="row-2">
       <div class="form-group"><label>Владелец GitHub</label><input type="text" id="cOwner" value="ssenkoss"></div>
       <div class="form-group"><label>Репозиторий</label><input type="text" id="cRepo" value="farms"></div>
     </div>
     <div class="form-group"><label>GitHub Token (Fine-grained, Contents: Read and write)</label><input type="password" id="cToken" placeholder="github_pat_..."></div>
-    <div class="form-group"><label>Пароль на создание ферм</label><input type="text" id="cPass" placeholder="ROME"></div>
     <div class="modal-actions" style="justify-content: space-between;">
       <button type="button" onclick="importFromOldJsonBin()">⇄ Импорт из JSONBin</button>
       <div style="display:flex; gap:8px;">
@@ -314,9 +346,14 @@
   const OLD_BIN_ID  = "6b04334bac6210605a9df50d";
   const OLD_API_KEY = "$2a$10$8EMgJqyrObzXiPKrfmEv8ugI8z2NfLJ1pbxxofxNNe.G6n83e0Js6";
 
-  const PASS_CLOUD  = "ROMES0fa";
-  const PASS_CREATE = "ROME";
-  const PASS_ADMIN  = "ROMEFARMS";
+  // Базовые пароли (могут быть переопределены в общей базе через меню «Для Сони»)
+  const DEFAULT_PASSWORDS = {
+    create: "ROME",
+    admin:  "ROMEFARMS",
+    cloud:  "ROMES0fa"
+  };
+
+  let sitePasswords = { ...DEFAULT_PASSWORDS };
 
   const FARM_TYPES = [
     "Опыт / Мобы", "Железо / Металлы", "Золото / Пиглины", "Еда / Растения",
@@ -328,9 +365,6 @@
   let fileSha = null;
   let dbLoaded = false;
 
-  if (localStorage.getItem("clan_pass") && localStorage.getItem("clan_pass") !== PASS_CREATE) {
-    localStorage.removeItem("clan_pass");
-  }
   if (localStorage.getItem("clan_theme") === "light") document.body.classList.add("light-theme");
 
   $("typeFilter").innerHTML = `<option value="">Все виды ферм</option>` + FARM_TYPES.map(t => `<option>${t}</option>`).join("");
@@ -340,8 +374,7 @@
     return {
       owner: localStorage.getItem("gh_owner") || DEF_OWNER,
       repo: localStorage.getItem("gh_repo") || DEF_REPO,
-      token: localStorage.getItem("gh_token") || (GH_T1 + GH_T2),
-      createPass: localStorage.getItem("clan_pass") || PASS_CREATE
+      token: localStorage.getItem("gh_token") || (GH_T1 + GH_T2)
     };
   }
 
@@ -475,6 +508,23 @@
     return new TextDecoder().decode(bytes);
   }
 
+  // Разбор загруженного JSON (поддерживает и старый формат массива [...], и объект { farms, passwords })
+  function applyDbPayload(parsed) {
+    if (Array.isArray(parsed)) {
+      farms = parsed;
+      sitePasswords = { ...DEFAULT_PASSWORDS };
+    } else if (parsed && typeof parsed === "object" && Array.isArray(parsed.farms)) {
+      farms = parsed.farms;
+      sitePasswords = {
+        create: parsed.passwords?.create || DEFAULT_PASSWORDS.create,
+        admin:  parsed.passwords?.admin  || DEFAULT_PASSWORDS.admin,
+        cloud:  parsed.passwords?.cloud  || DEFAULT_PASSWORDS.cloud
+      };
+    } else {
+      throw new Error("Некорректный формат farms.json");
+    }
+  }
+
   async function loadFarms() {
     const { owner, repo, token } = getCfg();
     dbLoaded = false;
@@ -491,6 +541,7 @@
 
       if (res.status === 404) {
         farms = [];
+        sitePasswords = { ...DEFAULT_PASSWORDS };
         fileSha = null;
         dbLoaded = true;
         setStatus("База farms.json ещё не создана (будет создана при добавлении фермы)");
@@ -502,19 +553,26 @@
       const data = await res.json();
       fileSha = data.sha;
 
-      let parsed = [];
+      let parsed = null;
       if (data.content && data.content.trim()) {
         parsed = JSON.parse(b64ToUtf8(data.content));
-      } else if (data.download_url) {
-        const rawRes = await fetch(`${data.download_url}?t=${Date.now()}`, { cache: "no-store" });
-        if (!rawRes.ok) throw new Error(`Ошибка загрузки большого файла (${rawRes.status})`);
-        parsed = await rawRes.json();
+      } else if (data.sha) {
+        // Мгновенная загрузка больших файлов (> 1 МБ) через Git Blobs API без 5-минутного кэша CDN
+        const blobUrl = `https://api.github.com/repos/${owner}/${repo}/git/blobs/${data.sha}`;
+        const blobRes = await fetch(blobUrl, { headers, cache: "no-store" });
+        if (blobRes.ok) {
+          const blobData = await blobRes.json();
+          parsed = JSON.parse(b64ToUtf8(blobData.content));
+        } else if (data.download_url) {
+          const rawRes = await fetch(`${data.download_url}?t=${Date.now()}`, { cache: "no-store" });
+          if (!rawRes.ok) throw new Error(`Ошибка загрузки большого файла (${rawRes.status})`);
+          parsed = await rawRes.json();
+        }
       }
 
-      if (!Array.isArray(parsed)) throw new Error("Некорректный формат farms.json");
-      farms = parsed;
+      applyDbPayload(parsed);
       dbLoaded = true;
-      localStorage.setItem("clan_farms_backup", JSON.stringify(farms));
+      localStorage.setItem("clan_farms_backup", JSON.stringify({ farms, passwords: sitePasswords }));
       setStatus(`База клана подключена ✓ (ферм: ${farms.length})`);
       render();
     } catch (e) {
@@ -528,11 +586,11 @@
     const { owner, repo, token } = getCfg();
     if (!dbLoaded) {
       alert("Сохранение заблокировано! База ещё не загрузилась с GitHub (защита от случайного затирания ферм). Обновите страницу!");
-      return;
+      return false;
     }
     if (!token) {
-      alert("Не указан GitHub Token! Откройте ⋮ → Облако / GitHub (пароль ROMES0fa).");
-      return;
+      alert("Не указан GitHub Token! Откройте ⋮ → Облако / GitHub.");
+      return false;
     }
 
     try {
@@ -552,9 +610,14 @@
         throw new Error(`Ошибка проверки версии (${checkRes.status})`);
       }
 
+      const payload = {
+        passwords: sitePasswords,
+        farms: farms
+      };
+
       const body = {
         message: `Update farms (${farms.length})`,
-        content: utf8ToB64(JSON.stringify(farms, null, 2))
+        content: utf8ToB64(JSON.stringify(payload, null, 2))
       };
       if (fileSha) body.sha = fileSha;
 
@@ -571,12 +634,14 @@
 
       const out = await res.json();
       fileSha = out.content.sha;
-      localStorage.setItem("clan_farms_backup", JSON.stringify(farms));
+      localStorage.setItem("clan_farms_backup", JSON.stringify(payload));
       setStatus(`Сохранено в базу клана ✓ (ферм: ${farms.length})`);
       render();
+      return true;
     } catch (e) {
       setStatus("Ошибка сохранения: " + e.message, true);
       alert("Не удалось сохранить изменения: " + e.message);
+      return false;
     }
   }
 
@@ -601,7 +666,7 @@
 
   function openAddModal() {
     if (!dbLoaded) return alert("Подождите, база ферм ещё загружается с сервера!");
-    askPass(getCfg().createPass, "➕ Создание фермы", "Введите пароль для добавления фермы:", () => {
+    askPass(sitePasswords.create, "➕ Создание фермы", "Введите пароль для добавления фермы:", () => {
       editId = null;
       $("modalTitle").textContent = "Добавить ферму";
       $("saveBtn").textContent = "Сохранить";
@@ -614,7 +679,7 @@
 
   function openEditModal(id) {
     if (!dbLoaded) return alert("Подождите, база ферм ещё загружается!");
-    askPass(PASS_ADMIN, "✏️ Редактирование фермы", "Введите пароль администратора:", () => {
+    askPass(sitePasswords.admin, "✏️ Редактирование фермы", "Введите пароль администратора:", () => {
       const f = farms.find(x => String(x.id) === String(id));
       if (!f) return;
       editId = f.id;
@@ -658,13 +723,43 @@
     await pushFarms();
   }
 
+  // Меню «Для Сони» (вход по главному паролю cloud: ROMES0fa)
   function openSonyaModal() {
     $("dotsMenu").classList.remove("open");
     if (!dbLoaded) return alert("Подождите, база ферм ещё загружается!");
-    askPass(getCfg().createPass, "📥 Доступ для Сони", "Введите пароль для добавления ферм:", () => {
+    askPass(sitePasswords.cloud, "📥 Доступ в меню «Для Сони»", "Введите главный пароль доступа:", () => {
       $("sonyaCodeInput").value = "";
+      $("pCreateInput").value = sitePasswords.create;
+      $("pAdminInput").value  = sitePasswords.admin;
+      $("pCloudInput").value  = sitePasswords.cloud;
+      $("passSaveHint").textContent = "Изменения сохранятся в общую базу для всего клана.";
+      $("passSaveHint").style.color = "var(--muted)";
       openModal("sonyaModal");
     });
+  }
+
+  async function savePasswordsToDb() {
+    if (!dbLoaded) return alert("База ещё не загружена!");
+    const newCreate = $("pCreateInput").value.trim();
+    const newAdmin  = $("pAdminInput").value.trim();
+    const newCloud  = $("pCloudInput").value.trim();
+
+    if (!newCreate || !newAdmin || !newCloud) {
+      alert("Ни один из трёх паролей не должен быть пустым!");
+      return;
+    }
+
+    sitePasswords = {
+      create: newCreate,
+      admin:  newAdmin,
+      cloud:  newCloud
+    };
+
+    const ok = await pushFarms();
+    if (ok) {
+      $("passSaveHint").textContent = "✓ Все пароли успешно обновлены в базе клана!";
+      $("passSaveHint").style.color = "var(--green)";
+    }
   }
 
   async function importSonyaCode() {
@@ -722,7 +817,7 @@
 
   function clearReports(id) {
     if (!dbLoaded) return alert("База ещё не загружена!");
-    askPass(PASS_ADMIN, "🛠 Снятие репорта", "Введите пароль администратора (ROMEFARMS):", async () => {
+    askPass(sitePasswords.admin, "🛠 Снятие репорта", "Введите пароль администратора:", async () => {
       const idx = farms.findIndex(x => String(x.id) === String(id));
       if (idx !== -1) { farms[idx].reports = []; await pushFarms(); }
     });
@@ -732,7 +827,7 @@
     if (!dbLoaded) return alert("База ещё не загружена!");
     const target = farms.find(x => String(x.id) === String(id));
     if (!target) return;
-    askPass(PASS_ADMIN, "🗑 Удаление фермы", `Введите пароль для удаления «${target.name}»:`, async () => {
+    askPass(sitePasswords.admin, "🗑 Удаление фермы", `Введите пароль для удаления «${target.name}»:`, async () => {
       farms = farms.filter(x => String(x.id) !== String(id));
       await pushFarms();
     });
@@ -740,12 +835,11 @@
 
   function openCloudModal() {
     $("dotsMenu").classList.remove("open");
-    askPass(PASS_CLOUD, "☁ Вход в настройки GitHub", "Введите пароль доступа:", () => {
+    askPass(sitePasswords.cloud, "☁ Вход в настройки GitHub", "Введите пароль доступа:", () => {
       const cfg = getCfg();
       $("cOwner").value = cfg.owner;
       $("cRepo").value = cfg.repo;
       $("cToken").value = cfg.token;
-      $("cPass").value = cfg.createPass;
       openModal("cloudModal");
     });
   }
@@ -753,7 +847,6 @@
     localStorage.setItem("gh_owner", $("cOwner").value.trim() || DEF_OWNER);
     localStorage.setItem("gh_repo", $("cRepo").value.trim() || DEF_REPO);
     localStorage.setItem("gh_token", $("cToken").value.trim());
-    localStorage.setItem("clan_pass", $("cPass").value.trim() || PASS_CREATE);
     closeModal("cloudModal");
     loadFarms();
   }
