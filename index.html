@@ -38,7 +38,7 @@
 
   .dots-wrap { position: relative; }
   .dots-btn { padding: 8px 11px; font-size: 16px; line-height: 1; font-weight: 700; }
-  .dots-menu { position: absolute; right: 0; top: calc(100% + 6px); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 6px; min-width: 185px; display: none; flex-direction: column; gap: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.35); z-index: 60; }
+  .dots-menu { position: absolute; right: 0; top: calc(100% + 6px); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 6px; min-width: 195px; display: none; flex-direction: column; gap: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.35); z-index: 60; }
   .dots-menu.open { display: flex; }
   .dots-menu button { width: 100%; text-align: left; padding: 7px 10px; font-size: 12.5px; border: none; background: transparent; }
   .dots-menu button:hover { background: var(--panel-2); }
@@ -305,13 +305,13 @@
 
 <div class="modal-backdrop" id="cloudModal">
   <div class="modal">
-    <h2>☁ Подключение общей базы (GitHub)</h2>
-    <p class="hint" style="margin-top:0;">База <b>farms.json</b> хранится прямо в репозитории (лимит до 100 МБ, фото работают без ограничений):</p>
+    <h2>☁ Подключение базы клана (GitHub)</h2>
+    <p class="hint" style="margin-top:0;">База хранится в файле <b>farms.json</b> внутри вашего репозитория GitHub (без лимита 100 КБ):</p>
     <div class="row-2">
-      <div class="form-group"><label>Владелец GitHub</label><input type="text" id="cOwner"></div>
-      <div class="form-group"><label>Репозиторий</label><input type="text" id="cRepo"></div>
+      <div class="form-group"><label>Владелец GitHub</label><input type="text" id="cOwner" placeholder="ssenkoss"></div>
+      <div class="form-group"><label>Репозиторий</label><input type="text" id="cRepo" placeholder="farms"></div>
     </div>
-    <div class="form-group"><label>GitHub Token (если нужно обновить)</label><input type="password" id="cToken" placeholder="Оставьте пустым, чтобы использовать встроенный"></div>
+    <div class="form-group"><label>GitHub Token (Fine-grained, Contents: Read and write)</label><input type="password" id="cToken" placeholder="github_pat_..."></div>
     <div class="form-group"><label>Пароль на создание ферм</label><input type="text" id="cPass" placeholder="ROME"></div>
     <div class="modal-actions" style="justify-content: space-between;">
       <button type="button" onclick="importFromOldJsonBin()">⇄ Импорт из старого JSONBin</button>
@@ -330,6 +330,7 @@
 <script>
   const DEF_OWNER = "ssenkoss";
   const DEF_REPO = "farms";
+  const DEF_FILE = "farms.json";
   const GH_T1 = "github_pat_11CV4OQ7A08RS5Lg7AIG9M_";
   const GH_T2 = "YIyoyU0GCnEVrpUQ77vBYn8bz79ErWmcHFEmWfiu2biU3UCHHBRra1FsRnE";
 
@@ -341,7 +342,7 @@
   const PASS_ADMIN = "ROMEFARMS";
 
   const $ = id => document.getElementById(id);
-  let farms = [], fileSha = null, editId = null, reportId = null, draftCover = "", draftImgs = [], authCb = null, authExp = "";
+  let farms = [], editId = null, reportId = null, draftCover = "", draftImgs = [], authCb = null, authExp = "", fileSha = null;
 
   if (localStorage.getItem("clan_pass") && localStorage.getItem("clan_pass") !== PASS_CREATE) {
     localStorage.removeItem("clan_pass");
@@ -350,9 +351,9 @@
 
   function getCfg() {
     return {
-      owner: localStorage.getItem("gh_owner") || DEF_OWNER,
-      repo: localStorage.getItem("gh_repo") || DEF_REPO,
-      token: localStorage.getItem("gh_token") || (GH_T1 + GH_T2),
+      owner: localStorage.getItem("clan_gh_owner") || DEF_OWNER,
+      repo: localStorage.getItem("clan_gh_repo") || DEF_REPO,
+      token: localStorage.getItem("clan_gh_token") || (GH_T1 + GH_T2),
       createPass: localStorage.getItem("clan_pass") || PASS_CREATE
     };
   }
@@ -411,7 +412,9 @@
     ["dragenter", "dragover"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add("dragover"); }));
     ["dragleave", "drop"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove("dragover"); }));
     z.addEventListener("drop", e => {
-      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) fn(e.dataTransfer.files);
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        fn(e.dataTransfer.files);
+      }
     });
   }
   bindDrop("coverDropZone", files => setCover(files[0]));
@@ -472,95 +475,105 @@
     ).join("");
   }
 
-  function toBase64Utf8(str) {
+  function utf8ToBase64(str) {
     const bytes = new TextEncoder().encode(str);
     let bin = "";
     for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
     return btoa(bin);
   }
-  function fromBase64Utf8(b64) {
+
+  function base64ToUtf8(b64) {
     const bin = atob(b64.replace(/\s/g, ""));
     const bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return new TextDecoder().decode(bytes);
   }
 
-  async function loadFarms() {
+  async function syncCloud(method = "GET") {
     const { owner, repo, token } = getCfg();
-    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/farms.json?t=${Date.now()}`;
-    try {
-      setStatus("Загрузка базы клана...");
-      let res = await fetch(apiUrl, token ? { headers: { "Authorization": `Bearer ${token}` } } : {});
-      if (res.status === 401 && token) {
-        res = await fetch(apiUrl);
-      }
-      if (res.status === 404) {
-        farms = [];
-        fileSha = null;
-        setStatus("База farms.json ещё не создана (нажмите ⋮ → Облако / GitHub для импорта или добавьте ферму)");
-        return render();
-      }
-      if (!res.ok) throw new Error(`GitHub API ${res.status}`);
-      const data = await res.json();
-      fileSha = data.sha;
-      const content = data.content ? fromBase64Utf8(data.content) : "[]";
-      farms = JSON.parse(content || "[]");
-      setStatus("База клана подключена (GitHub) ✓");
-      render();
-    } catch (e) {
-      setStatus("Ошибка загрузки: " + e.message, true);
-      render();
-    }
-  }
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${DEF_FILE}`;
 
-  async function saveToGitHub() {
-    const { owner, repo, token } = getCfg();
-    if (!token) {
-      setStatus("Ошибка: не задан GitHub Token в ⋮ → Облако / GitHub", true);
+    if (method === "GET") {
+      try {
+        setStatus("Загрузка базы клана из GitHub...");
+        let res = await fetch(`${apiUrl}?t=${Date.now()}`, {
+          headers: token ? { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json" } : { "Accept": "application/vnd.github+json" }
+        });
+
+        if (res.status === 401 && token) {
+          res = await fetch(`${apiUrl}?t=${Date.now()}`, { headers: { "Accept": "application/vnd.github+json" } });
+        }
+
+        if (res.status === 404) {
+          fileSha = null;
+          farms = [];
+          setStatus("База farms.json ещё не создана (добавьте ферму или нажмите ⋮ → Импорт из JSONBin)");
+          return render();
+        }
+        if (!res.ok) throw new Error(`Код ответа ${res.status}`);
+
+        const data = await res.json();
+        fileSha = data.sha;
+        const decoded = base64ToUtf8(data.content || "");
+        const parsed = decoded ? JSON.parse(decoded) : [];
+        farms = Array.isArray(parsed) ? parsed : [];
+        setStatus("Режим: Общая база GitHub подключена ✓");
+        render();
+      } catch (e) {
+        setStatus("Ошибка загрузки GitHub: " + e.message, true);
+        render();
+      }
       return;
     }
-    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/farms.json`;
+
+    if (!token) {
+      setStatus("Не указан GitHub Token для сохранения!", true);
+      alert("Для сохранения изменений введите GitHub Token в меню: ⋮ → Облако / GitHub");
+      return;
+    }
+
     try {
-      setStatus("Сохранение в базу клана...");
+      setStatus("Сохранение в GitHub...");
       const checkRes = await fetch(`${apiUrl}?t=${Date.now()}`, {
-        headers: { "Authorization": `Bearer ${token}` }
+        headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json" }
       });
-      if (checkRes.status === 401) {
-        throw new Error("Токен отклонён GitHub (401). Создайте новый Fine-grained токен и вставьте в ⋮ → Облако / GitHub");
-      }
       if (checkRes.ok) {
-        const latest = await checkRes.json();
-        fileSha = latest.sha;
+        const checkData = await checkRes.json();
+        fileSha = checkData.sha;
       } else if (checkRes.status === 404) {
         fileSha = null;
+      } else if (checkRes.status === 401) {
+        throw new Error("401 (Токен устарел или заблокирован GitHub — создайте новый в ⋮ → Облако / GitHub)");
       }
 
-      const body = {
-        message: "Обновление базы ферм клана",
-        content: toBase64Utf8(JSON.stringify(farms, null, 2))
+      const bodyObj = {
+        message: "Update farms.json",
+        content: utf8ToBase64(JSON.stringify(farms, null, 2))
       };
-      if (fileSha) body.sha = fileSha;
+      if (fileSha) bodyObj.sha = fileSha;
 
       const putRes = await fetch(apiUrl, {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,
+          "Accept": "application/vnd.github+json",
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(bodyObj)
       });
+
       if (!putRes.ok) {
-        const errData = await putRes.json().catch(() => ({}));
-        throw new Error(`${putRes.status}: ${errData.message || "Ошибка записи"}`);
+        const errJson = await putRes.json().catch(() => ({}));
+        throw new Error(`${putRes.status} ${errJson.message || ""}`);
       }
-      const saved = await putRes.json();
-      fileSha = saved.content.sha;
-      setStatus("Сохранено в общую базу клана ✓");
+
+      const putData = await putRes.json();
+      fileSha = putData.content?.sha || fileSha;
+      setStatus("Сохранено в общую базу GitHub ✓");
       render();
     } catch (e) {
-      setStatus("Ошибка сохранения: " + e.message, true);
-      alert("Не удалось сохранить в GitHub:
-" + e.message);
+      setStatus("Ошибка сохранения GitHub: " + e.message, true);
+      alert("Ошибка сохранения в GitHub: " + e.message);
     }
   }
 
@@ -570,16 +583,16 @@
       const res = await fetch(`https://api.jsonbin.io/v3/b/${OLD_BIN}/latest`, {
         headers: { "X-Master-Key": OLD_KEY }
       });
-      if (!res.ok) throw new Error(`JSONBin ответил кодом ${res.status}`);
+      if (!res.ok) throw new Error(`Ошибка JSONBin: ${res.status}`);
       const data = await res.json();
-      const oldList = Array.isArray(data.record) ? data.record : [];
-      if (!oldList.length) return alert("В старой базе JSONBin не найдено ферм.");
-      farms = oldList;
+      const oldFarms = Array.isArray(data.record) ? data.record : [];
+      if (!oldFarms.length) return alert("В старом JSONBin не найдено ферм.");
+      farms = oldFarms;
       closeModal("cloudModal");
-      await saveToGitHub();
+      await syncCloud("PUT");
+      alert(`Перенесено ферм из JSONBin: ${oldFarms.length}`);
     } catch (e) {
-      setStatus("Ошибка импорта: " + e.message, true);
-      alert("Ошибка импорта из JSONBin: " + e.message);
+      alert("Не удалось перенести из JSONBin: " + e.message);
     }
   }
 
@@ -636,7 +649,7 @@
       farms.unshift(item);
     }
     closeModal("addModal");
-    await saveToGitHub();
+    await syncCloud("PUT");
   }
 
   function openSonyaModal() {
@@ -648,9 +661,7 @@
   }
 
   async function importSonyaCode() {
-    const lines = $("sonyaCodeInput").value.trim().split(/
-?
-/).map(l => l.trim()).filter(Boolean);
+    const lines = $("sonyaCodeInput").value.trim().split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     if (!lines.length) return alert("Вставьте хотя бы одну строку с кодом фермы!");
     let count = 0;
     lines.forEach((line, idx) => {
@@ -674,7 +685,7 @@
     });
     if (!count) return alert("Не удалось распознать код. Используйте разделитель @");
     closeModal("sonyaModal");
-    await saveToGitHub();
+    await syncCloud("PUT");
   }
 
   function openReportModal(id) {
@@ -696,13 +707,13 @@
     const date = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) + " " + now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
     farms[idx].reports.push({ author: $("rAuthor").value.trim() || "Игрок", text, date });
     closeModal("reportModal");
-    await saveToGitHub();
+    await syncCloud("PUT");
   }
 
   function clearReports(id) {
     askPass(PASS_ADMIN, "🛠 Снятие репорта", "Введите пароль администратора (ROMEFARMS):", async () => {
       const idx = farms.findIndex(x => String(x.id) === String(id));
-      if (idx !== -1) { farms[idx].reports = []; await saveToGitHub(); }
+      if (idx !== -1) { farms[idx].reports = []; await syncCloud("PUT"); }
     });
   }
 
@@ -711,30 +722,31 @@
     if (!target) return;
     askPass(PASS_ADMIN, "🗑 Удаление фермы", `Введите пароль для удаления «${target.name}»:`, async () => {
       farms = farms.filter(x => String(x.id) !== String(id));
-      await saveToGitHub();
+      await syncCloud("PUT");
     });
   }
 
   function openCloudModal() {
     $("dotsMenu").classList.remove("open");
-    askPass(PASS_CLOUD, "☁ Вход в настройки облака", "Введите пароль доступа к облаку:", () => {
+    askPass(PASS_CLOUD, "☁ Вход в настройки GitHub", "Введите пароль доступа к настройкам:", () => {
       const cfg = getCfg();
       $("cOwner").value = cfg.owner;
       $("cRepo").value = cfg.repo;
-      $("cToken").value = localStorage.getItem("gh_token") || "";
+      $("cToken").value = localStorage.getItem("clan_gh_token") || "";
       $("cPass").value = cfg.createPass;
       openModal("cloudModal");
     });
   }
 
   function saveCloudConfig() {
-    localStorage.setItem("gh_owner", $("cOwner").value.trim() || DEF_OWNER);
-    localStorage.setItem("gh_repo", $("cRepo").value.trim() || DEF_REPO);
-    const t = $("cToken").value.trim();
-    if (t) localStorage.setItem("gh_token", t);
+    localStorage.setItem("clan_gh_owner", $("cOwner").value.trim() || DEF_OWNER);
+    localStorage.setItem("clan_gh_repo", $("cRepo").value.trim() || DEF_REPO);
+    const tok = $("cToken").value.trim();
+    if (tok) localStorage.setItem("clan_gh_token", tok);
+    else localStorage.removeItem("clan_gh_token");
     localStorage.setItem("clan_pass", $("cPass").value.trim());
     closeModal("cloudModal");
-    loadFarms();
+    syncCloud("GET");
   }
 
   const esc = s => String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
@@ -766,7 +778,7 @@
     });
 
     $("farmsGrid").innerHTML = !list.length
-      ? `<div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму» или перенесите старые фермы через ⋮ → Облако / GitHub.</div>`
+      ? `<div class="empty">Ферм по заданным фильтрам не найдено. Нажмите «+ Добавить ферму» или перенесите базу через «⋮ → Облако / GitHub → Импорт из старого JSONBin».</div>`
       : list.map(f => {
           const [pText, pCls] = prioMap[f.prio] || prioMap.low;
           const coords = `${f.x} ${f.y} ${f.z}`, reps = f.reports || [], broken = reps.length > 0;
@@ -800,7 +812,7 @@
         }).join("");
   }
 
-  loadFarms();
+  syncCloud("GET");
 </script>
 </body>
 </html>
