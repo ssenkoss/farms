@@ -65,31 +65,30 @@
     transition: 0.15s;
   }
   button:hover { border-color: #556855; background: #2c352c; }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
   button.primary {
     background: var(--green);
     border-color: var(--green);
     color: #fff;
   }
   button.primary:hover { background: var(--green-hover); }
+  button.warn {
+    color: var(--med);
+    border-color: rgba(255,183,77,0.4);
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  button.warn:hover { background: rgba(255,183,77,0.15); }
   button.edit-btn {
     color: var(--low);
-    border-color: rgba(100,181,246,0.35);
-    padding: 5px 9px;
+    border-color: rgba(100,181,246,0.4);
+    padding: 5px 10px;
     font-size: 12px;
   }
   button.edit-btn:hover { background: rgba(100,181,246,0.15); }
-  button.report-btn {
-    color: var(--med);
-    border-color: rgba(255,183,77,0.4);
-    padding: 5px 9px;
-    font-size: 12px;
-  }
-  button.report-btn:hover { background: rgba(255,183,77,0.15); }
   button.danger {
     color: var(--crit);
     border-color: rgba(239,83,80,0.35);
-    padding: 5px 9px;
+    padding: 5px 10px;
     font-size: 12px;
   }
   button.danger:hover { background: rgba(239,83,80,0.15); }
@@ -146,7 +145,6 @@
     gap: 16px;
   }
   .card {
-    position: relative;
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -154,72 +152,59 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: border-color 0.2s, box-shadow 0.2s;
   }
   .card.broken {
-    border-color: var(--crit);
-    box-shadow: 0 0 0 1px rgba(239, 83, 80, 0.35), 0 8px 24px rgba(239, 83, 80, 0.14);
+    border: 2px solid var(--crit);
+    box-shadow: 0 0 18px rgba(239, 83, 80, 0.22);
   }
-
   .broken-banner {
-    background: rgba(239, 83, 80, 0.16);
+    background: rgba(239, 83, 80, 0.2);
     border-bottom: 1px solid rgba(239, 83, 80, 0.45);
     padding: 8px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
+    color: #ffcdd2;
+    font-size: 12.5px;
+    font-weight: 600;
   }
-  .broken-left {
-    display: flex;
+  .excl-badge {
+    display: inline-flex;
     align-items: center;
-    gap: 9px;
-    min-width: 0;
-  }
-  .excl-icon {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     background: var(--crit);
     color: #fff;
     font-weight: 900;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 10px rgba(239, 83, 80, 0.7);
-    animation: pulseAlert 1.8s infinite;
+    font-size: 14px;
+    margin-right: 6px;
+    animation: pulse 1.4s infinite;
   }
-  @keyframes pulseAlert {
+  @keyframes pulse {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    50% { transform: scale(1.15); }
   }
-  .broken-info {
+  .reports-list {
+    background: rgba(239, 83, 80, 0.08);
+    border: 1px solid rgba(239, 83, 80, 0.3);
+    border-radius: 6px;
+    padding: 8px 10px;
     font-size: 12px;
     color: #ffcdd2;
-    line-height: 1.3;
   }
-  .broken-info b {
-    color: #fff;
-    display: block;
-    font-size: 12.5px;
+  .report-item {
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed rgba(239, 83, 80, 0.25);
   }
-  .fix-btn {
-    flex-shrink: 0;
-    background: rgba(76, 175, 80, 0.2);
-    border: 1px solid rgba(76, 175, 80, 0.55);
-    color: #a5d6a7;
-    padding: 4px 8px;
-    font-size: 11px;
-    border-radius: 5px;
-    cursor: pointer;
+  .report-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
   }
-  .fix-btn:hover {
-    background: rgba(76, 175, 80, 0.35);
-    color: #fff;
-  }
-
   .card-cover {
     width: 100%;
     height: 175px;
@@ -294,31 +279,6 @@
     border-radius: 0 4px 4px 0;
     white-space: pre-wrap;
   }
-  .report-box {
-    background: rgba(239, 83, 80, 0.08);
-    border: 1px solid rgba(239, 83, 80, 0.35);
-    border-radius: 6px;
-    padding: 8px 10px;
-    font-size: 12.5px;
-    color: #ffcdd2;
-  }
-  .report-box-title {
-    font-weight: 600;
-    color: var(--crit);
-    margin-bottom: 4px;
-    font-size: 12px;
-  }
-  .report-item {
-    border-top: 1px dashed rgba(239, 83, 80, 0.25);
-    padding-top: 4px;
-    margin-top: 4px;
-    white-space: pre-wrap;
-  }
-  .report-item:first-of-type {
-    border-top: none;
-    padding-top: 0;
-    margin-top: 0;
-  }
   .note-thumbs {
     display: flex;
     gap: 6px;
@@ -342,12 +302,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
     font-size: 12px;
     color: var(--muted);
-    gap: 6px;
-    flex-wrap: wrap;
   }
-  .card-foot-actions {
+  .foot-btns {
     display: flex;
     gap: 5px;
     flex-wrap: wrap;
@@ -383,7 +343,8 @@
     color: var(--muted);
     margin-bottom: 4px;
   }
-  .row-2 {
+
+.row-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
@@ -411,9 +372,7 @@
     color: var(--text);
     margin-bottom: 2px;
   }
-  .file-box input[type="file"] {
-    display: none;
-  }
+  .file-box input[type="file"] { display: none; }
   .preview-strip {
     display: flex;
     gap: 8px;
@@ -431,7 +390,6 @@
     object-fit: cover;
     border-radius: 5px;
     border: 1px solid var(--border);
-    background: #000;
   }
   .preview-del {
     position: absolute;
@@ -441,14 +399,13 @@
     color: #fff;
     border: none;
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     padding: 0;
-    font-size: 12px;
-    line-height: 20px;
+    font-size: 11px;
+    line-height: 18px;
     text-align: center;
     cursor: pointer;
-    z-index: 2;
   }
   .modal-actions {
     display: flex;
@@ -468,7 +425,7 @@
   .hint {
     font-size: 11.5px;
     color: var(--muted);
-    margin-top: 2px;
+    margin-top: 4px;
   }
 
   /* Lightbox */
@@ -510,7 +467,7 @@
 <div class="container">
   <div class="stats">
     <div class="stat-pill">Всего ферм: <b id="statTotal">0</b></div>
-    <div class="stat-pill crit">Сломано (есть репорты): <b id="statBroken">0</b></div>
+    <div class="stat-pill crit">Сломаны (есть репорт): <b id="statBroken">0</b></div>
     <div class="stat-pill crit">Хрупких (критичный риск поломки): <b id="statCrit">0</b></div>
   </div>
 
@@ -529,21 +486,21 @@
       <option>Другое</option>
     </select>
     <select id="prioFilter" onchange="render()">
-      <option value="">Любой статус / риск</option>
-      <option value="broken">❗ Сломаны (есть репорт)</option>
-      <option value="crit">🔴 Критичный риск (ломается от дыхания)</option>
-      <option value="med">🟡 Средний риск (бывают сбои)</option>
-      <option value="low">🔵 Низкий риск (надёжная)</option>
+      <option value="">Любой риск / статус</option>
+      <option value="broken">❗ Сломаны (требуется ремонт)</option>
+      <option value="crit">🔴 Критичный (ломается от любого дыхания)</option>
+      <option value="med">🟡 Средний (бывают сбои)</option>
+      <option value="low">🔵 Низкий (надёжная)</option>
     </select>
   </div>
 
   <div class="grid" id="farmsGrid"></div>
 </div>
 
-<!-- Модальное окно добавления / редактирования фермы -->
+<!-- Модальное окно добавления / редактирования -->
 <div class="modal-backdrop" id="addModal">
   <div class="modal">
-    <h2 id="modalTitle">Добавить ферму</h2>
+    <h2 id="addModalTitle">Добавить ферму</h2>
     <div class="row-2">
       <div class="form-group">
         <label>Вид фермы</label>
@@ -566,11 +523,11 @@
     </div>
 
     <div class="form-group">
-      <label>Обложка фермы (необязательно)</label>
+      <label>Обложка фермы (скриншот общего вида, необязательно)</label>
       <div class="file-box" id="coverDropZone" onclick="document.getElementById('fCoverInput').click()">
         <input type="file" id="fCoverInput" accept="image/*" onchange="handleCoverSelect(event)">
         <div class="drop-title">📷 Перетащите скриншот сюда или нажмите для выбора</div>
-        <div class="hint">Картинка автоматически сожмётся для быстрой загрузки.</div>
+        <div class="hint">Картинка автоматически сожмётся для быстрой загрузки в базу.</div>
         <div class="preview-strip" id="coverPreview" onclick="event.stopPropagation()"></div>
       </div>
     </div>
@@ -609,11 +566,11 @@
 
     <div class="form-group">
       <label>Уточнения (примечание: как не сломать, где рычаг, куда вставать АФК)</label>
-      <textarea id="fNote" rows="3" placeholder="Например: Не выходить из игры в радиусе 30 блоков, сначала глушить рычагом на входе!"></textarea>
+      <textarea id="fNote" rows="4" placeholder="Например: Не выходить из игры в радиусе 30 блоков, сначала глушить рычагом на входе!"></textarea>
     </div>
 
     <div class="form-group">
-      <label>Фото к уточнениям (до 4 скриншотов)</label>
+      <label>Фото к уточнениям (рычаги, точки АФК, схемы — до 4 скриншотов)</label>
       <div class="file-box" id="noteImgsDropZone" onclick="document.getElementById('fNoteImgsInput').click()">
         <input type="file" id="fNoteImgsInput" accept="image/*" multiple onchange="handleNoteImgsSelect(event)">
         <div class="drop-title">🖼 Перетащите до 4 фото сюда или нажмите для выбора</div>
@@ -631,19 +588,19 @@
 <!-- Модальное окно репорта о поломке -->
 <div class="modal-backdrop" id="reportModal">
   <div class="modal">
-    <h2>🚨 Сообщить о поломке фермы</h2>
-    <p class="hint" id="reportFarmName" style="margin-top:0; font-size:13px; color:var(--text);"></p>
+    <h2>⚠ Сообщить о поломке фермы</h2>
+    <p class="hint" style="margin-top:0;">На карточке появится красный восклицательный знак, чтобы другие игроки знали о поломке.</p>
     <div class="form-group">
-      <label>Ваш ник (необязательно)</label>
-      <input type="text" id="rAuthor" placeholder="Кто обнаружил поломку">
+      <label>Ваш ник в игре</label>
+      <input type="text" id="rUser" placeholder="Например: Steve">
     </div>
     <div class="form-group">
       <label>Что именно сломалось? *</label>
-      <textarea id="rText" rows="3" placeholder="Например: Забились воронки, умер голем или сбился таймер на поршнях..."></textarea>
+      <textarea id="rText" rows="3" placeholder="Например: Пропала вагонетка / сломался поршень / не работает автосортировка"></textarea>
     </div>
     <div class="modal-actions">
       <button onclick="closeModal('reportModal')">Отмена</button>
-      <button class="primary" style="background:var(--crit); border-color:var(--crit);" onclick="submitReport()">Отправить репорт</button>
+      <button class="primary" onclick="submitReport()">Отправить репорт</button>
     </div>
   </div>
 </div>
@@ -674,21 +631,346 @@
   </div>
 </div>
 
+<!-- Просмотр фото на весь экран -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <img id="lightboxImg" src="" alt="Скриншот фермы">
 </div>
-
 <script>
-const HARDCODED_BIN_ID = "6b04334bac6210605a9df50d";
-const HARDCODED_API_KEY = "$2a$10$8EMgJqyrObzXiPKrfmEv8ugI8z2NfLJ1pbxxofxNNe.G6n83e0Js6";
-const HARDCODED_PASS = "ROME";
-const REPORT_CLEAR_CODE = "ROMEFARMS";
+  const HARDCODED_BIN_ID = "6b04334bac6210605a9df50d";
+  const HARDCODED_API_KEY = "$2a$10$8EMgJqyrObzXiPKrfmEv8ugI8z2NfLJ1pbxxofxNNe.G6n83e0Js6";
+  const HARDCODED_PASS = "ROME";
+  const FIX_PASS = "ROMEFARMS";
+
+  const INITIAL_FARMS = [
+    {
+      id: 1700000000001,
+      type: "Золото / Пиглины",
+      name: "Ферма золота на 2-х игроках",
+      dim: "Верхний мир",
+      x: -1665, y: 117, z: 5125,
+      rate: "~4к блоков золота/ч",
+      prio: "crit",
+      note: "Описание: Поставить твинка в АФК в Аду (-208 164 659), основу в Верхнем мире (-1665 117 5125), нажать на рычаг (фото №2). Поставить рост обычного игрока /resize reset, зайти к калитке, нажать на люк и после проползания закрыть калитку, прижавшись спиной. Включить кликер (смотреть прямо).\nПридирки: Для хорошего фарма ставить много стоек (кнопка возле раздатчика). Если заметили проблему — писать автору в ЛС.",
+      author: "0_PVE_Farmila_0",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000002,
+      type: "Опыт / Мобы",
+      name: "Ферма Визер-Черепов / Обсидиана",
+      dim: "Незер",
+      x: -757, y: 128, z: 138,
+      rate: "~500 черепов/ч / ~17к обсидиана/ч",
+      prio: "crit",
+      note: "Описание: Спуск -757 128 138 (Крыша Ада), место фарма -786 21 168 (под фермой). Включить рычаг (фото №2) до начала работы. Поставить /resize reset, заполнить инвентарь предметами, подойти к люку и стойке (фото №3) и включить автокликер.\nПридирки: Ставить много стоек нажатием на кнопку возле раздатчика. При поломке писать автору в ЛС.",
+      author: "0_PVE_Farmila_0",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000003,
+      type: "Еда / Растения",
+      name: "Ферма Тёмного / Бледного дуба",
+      dim: "Верхний мир",
+      x: -1124, y: 99, z: 5555,
+      rate: "Не указано",
+      prio: "crit",
+      note: "Описание: Убедиться, что в сундуках есть костная мука (с собой взять 40+ саженцев). Подняться по подмосткам наверх, включить основной рычаг, сломать и поставить вагонетку на рельсы возле земли. Навести прицел на дальний блок земли и зажать ПКМ.\nПридирки: После окончания фарма ОБЯЗАТЕЛЬНО выключить ферму! Не ломать блоки и механизмы.",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000004,
+      type: "Еда / Растения",
+      name: "Ферма мха",
+      dim: "Верхний мир",
+      x: -1010, y: 64, z: 5700,
+      rate: "Автопополнение костной муки",
+      prio: "med",
+      note: "Описание: Активация рычагом на -1011 86 5703. Костная мука пополняется сама. Для смены типа мха заменить блок на противоположный на координатах -1011 92 5703 (см. фото 2).\nПридирки: Не уходить с фермы, не выключив её!",
+      author: "S0fa",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000005,
+      type: "Еда / Растения",
+      name: "Ферма визер роз",
+      dim: "Верхний мир",
+      x: -1015, y: 64, z: 5771,
+      rate: "~20к/ч",
+      prio: "crit",
+      note: "Описание: Забраться по ступенькам, встать на сундук, брать зелья и кидать в угол с броненосцами раз в 2 мин 50 сек.",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000006,
+      type: "Другое",
+      name: "Ферма Обсидиана на 2-х игроках",
+      dim: "Верхний мир",
+      x: -1196, y: 121, z: 5325,
+      rate: "~17к/ч",
+      prio: "crit",
+      note: "Описание: Поставить твинка в Аду (-140 135 663), основу в Верхнем мире (-1196 121 5325), нажать на рычаг (фото №2).\nПридирки: Вставать в АФК только при стабильном интернете! После фарма ОБЯЗАТЕЛЬНО ВЫКЛЮЧИТЬ РЫЧАГ — ферма сломается, если игрок в Аду ливнёт с сервера, забыв отключить её.",
+      author: "0_PVE_Farmila_0",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000007,
+      type: "Другое",
+      name: "Ферма Шерсти",
+      dim: "Верхний мир",
+      x: -1466, y: 64, z: 5646,
+      rate: "Не указано",
+      prio: "med",
+      note: "Описание: Найти рычаг (2-й скриншот) — если лампа горит, ферма работает. Встать в АФК в отведённую коробку (скриншот 3).\nПридирки: Не забывать пополнять ножницы! Не ломать блоки и механизмы.",
+      author: "0_PVE_Farmila_0",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000008,
+      type: "Жители / Торговля",
+      name: "Ферма рейдов",
+      dim: "Верхний мир",
+      x: -110, y: 64, z: 700,
+      rate: "~1500 изумр. блоков/ч + тотемы",
+      prio: "crit",
+      note: "Описание: Взять в левую руку ~3 бутылочки рейда IV уровня. Найти рычаг (3-й скрин), деактивировать его и запустить автокликер (для работы стойки для брони настроить мод).\nПридирки: Следить за работой фермы, при поломке писать автору в ЛС.",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000009,
+      type: "Золото / Пиглины",
+      name: "Ферма золота / опыта",
+      dim: "Незер",
+      x: -1022, y: 97, z: 5985,
+      rate: "Не указано",
+      prio: "low",
+      note: "Описание: Ничего включать не нужно. Подойти к месту убийства и бить свинозомби — ферма работает автоматически.\nПридирки: Стараться не ломать блоки и механизмы.",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000010,
+      type: "Другое",
+      name: "Ферма булыжника",
+      dim: "Верхний мир",
+      x: -1500, y: 64, z: 5539,
+      rate: "Не указано",
+      prio: "low",
+      note: "Описание: Включение рычагом, показанным на 2-м скриншоте.",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000011,
+      type: "Еда / Растения",
+      name: "Ферма корнистой земли",
+      dim: "Верхний мир",
+      x: -1298, y: 86, z: 5452,
+      rate: "Не указано",
+      prio: "med",
+      note: "Описание: Положить костную муку в подписанный сундук справа от АФК. Встать на золотой блок, взять азалию в руки, включить рычаг (скрины 3–4), прижаться к блокам и смотреть на поршень.\nПридирки: Не ломать блоки и механизмы фермы.",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000012,
+      type: "Еда / Растения",
+      name: "Ферма 7 видов дерева",
+      dim: "Верхний мир",
+      x: -1090, y: 64, z: 5670,
+      rate: "Не указано",
+      prio: "med",
+      note: "Описание: Стандартный запуск фермы дерева (подробная инструкция автором не расписана).",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000013,
+      type: "Еда / Растения",
+      name: "Ферма адских деревьев",
+      dim: "Верхний мир",
+      x: -1089, y: 110, z: 5547,
+      rate: "Автопополнение",
+      prio: "med",
+      note: "Описание: Активировать рычаг. Для смены вида дерева поменять нилий на самой ферме (скрин 4) и на ферме адских грибов (скрин 5).",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000014,
+      type: "Еда / Растения",
+      name: "Ферма кожи и еды",
+      dim: "Незер",
+      x: -306, y: 128, z: 949,
+      rate: "Не указано",
+      prio: "low",
+      note: "Описание: Находится на крыше Ада. Ничего включать не нужно — забраться по подмосткам наверх и пользоваться.\nПридирки: Не ломать блоки и механизмы.",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000015,
+      type: "Еда / Растения",
+      name: "Ферма Тростника",
+      dim: "Верхний мир",
+      x: -1444, y: 85, z: 5737,
+      rate: "Автопополнение",
+      prio: "low",
+      note: "Описание: Работает постоянно, ничего включать не нужно — просто приходить и забирать тростник.\nПридирки: Не ломать блоки и механизмы.",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000016,
+      type: "Еда / Растения",
+      name: "Ферма костной муки",
+      dim: "Верхний мир",
+      x: -1349, y: 85, z: 5646,
+      rate: "~15 000 костной муки/ч (~1666 блоков) + мох",
+      prio: "crit",
+      note: "Описание: Справа от кафедры столб из подмостков — подняться наверх и включить рычаг.\nПридирки: Перед использованием проверить, не сломана ли ферма. После окончания фарма ОБЯЗАТЕЛЬНО выключить!",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000017,
+      type: "Еда / Растения",
+      name: "Ферма сот",
+      dim: "Верхний мир",
+      x: -22, y: 135, z: 709,
+      rate: "Не указано",
+      prio: "med",
+      note: "Описание: Возле сундуков рычаг (зелёная лампа — работает, красная — выключена).\nПридирки: После фарма выключить ферму! Не ломать блоки и механизмы.",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000018,
+      type: "Еда / Растения",
+      name: "Ферма мёда",
+      dim: "Верхний мир",
+      x: -128, y: 134, z: 730,
+      rate: "Не указано",
+      prio: "low",
+      note: "Описание: Всегда включена — ничего активировать не нужно.\nПридирки: Не ломать блоки и механизмы.",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000019,
+      type: "Золото / Пиглины",
+      name: "Трейдхол Пиглинов",
+      dim: "Незер",
+      x: -799, y: 135, z: 628,
+      rate: "Не указано",
+      prio: "med",
+      note: "Описание: На 2-м скриншоте найти железную нажимную плиту и просто встать на неё.\nПридирки: Не ломать блоки и механизмы трейдхолла.",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000020,
+      type: "Еда / Растения",
+      name: "Ферма мангрового дерева",
+      dim: "Верхний мир",
+      x: -1232, y: 85, z: 5545,
+      rate: "Не указано",
+      prio: "med",
+      note: "Описание: Проверить отростки в сундуке сзади и костную муку над землёй. Встать на каменную плиту, держать отросток в основной руке, смотреть на землю и зажать ПКМ.\nПридирки: Не ломать блоки и механизмы.",
+      author: "prud1",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000021,
+      type: "Другое",
+      name: "Ферма снега",
+      dim: "Верхний мир",
+      x: 0, y: 64, z: 5619,
+      rate: "Не указано",
+      prio: "crit",
+      note: "Описание: Нажать рычаг возле сундуков 1 раз (должна загореться лампа). Нафармив нужное количество, нажать рычаг повторно.\nПридирки: ОБЯЗАТЕЛЬНО дождаться, пока все вагонетки заедут обратно, прежде чем уходить! (Координата X была скрыта на видео — впишите через Редактировать).",
+      author: "prud1",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000022,
+      type: "Другое",
+      name: "Ферма квамп",
+      dim: "Верхний мир",
+      x: -396, y: 128, z: 1275,
+      rate: "Не указано",
+      prio: "low",
+      note: "Описание: Ничего включать не нужно — забраться по подмосткам наверх в АФК-зону и стоять.\nПридирки: Не ломать блоки и механизмы.",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    },
+    {
+      id: 1700000000023,
+      type: "Еда / Растения",
+      name: "Ферма земли",
+      dim: "Верхний мир",
+      x: -1905, y: 85, z: 5587,
+      rate: "Не указано",
+      prio: "crit",
+      note: "Описание: Зайти внутрь, взять саженцы из бочки, проверить костную муку в сундуках со 2-го скрина. Встать на место для фарма, поставить прицел прямо (чуть ниже раздатчика) и зажать ПКМ.\nПридирки: После окончания фарма ОБЯЗАТЕЛЬНО выключить ферму!",
+      author: "parolb",
+      cover: "",
+      noteImgs: [],
+      reports: []
+    }
+  ];
 
   let farms = [];
-  let editingFarmId = null;
-  let reportingFarmId = null;
   let draftCover = "";
   let draftNoteImgs = [];
+  let editingId = null;
+  let reportingId = null;
 
   function getConfig() {
     return {
@@ -706,6 +988,7 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
 
   function setupDropZone(zoneId, onFilesDropped) {
     const zone = document.getElementById(zoneId);
+    if (!zone) return;
     ["dragenter", "dragover"].forEach(ev => {
       zone.addEventListener(ev, e => {
         e.preventDefault();
@@ -767,6 +1050,7 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
 
   function handleCoverSelect(e) {
     processCoverFile(e.target.files[0]);
+    e.target.value = "";
   }
 
   async function processNoteImgFiles(fileList) {
@@ -812,7 +1096,7 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     const cfg = getConfig();
     if (!cfg.binId || !cfg.apiKey) {
       const saved = localStorage.getItem("clan_farms_local");
-      farms = saved ? JSON.parse(saved) : [];
+      farms = saved ? JSON.parse(saved) : INITIAL_FARMS.slice();
       updateStatus("Режим: Локальное хранение (нажмите «Облако» для общей базы)");
       render();
       return;
@@ -825,7 +1109,21 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
       });
       if (!res.ok) throw new Error("Ошибка доступа к Bin (" + res.status + ")");
       const data = await res.json();
-      farms = Array.isArray(data.record) ? data.record : [];
+      let remoteFarms = Array.isArray(data.record) ? data.record : [];
+
+      if (!localStorage.getItem("clan_initial_23_seeded")) {
+        const existingNames = new Set(remoteFarms.map(f => f.name.toLowerCase()));
+        const toAdd = INITIAL_FARMS.filter(f => !existingNames.has(f.name.toLowerCase()));
+        if (toAdd.length > 0) {
+          farms = [...remoteFarms, ...toAdd];
+          localStorage.setItem("clan_initial_23_seeded", "1");
+          await pushFarms();
+          return;
+        }
+        localStorage.setItem("clan_initial_23_seeded", "1");
+      }
+
+      farms = remoteFarms;
       updateStatus("Режим: Общая база клана подключена ✓");
       render();
     } catch (e) {
@@ -874,8 +1172,12 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     return true;
   }
 
-  function resetFormFields() {
-    document.getElementById("fType").selectedIndex = 0;
+  function openAddModal() {
+    if (!checkClanPass()) return;
+    editingId = null;
+    document.getElementById("addModalTitle").textContent = "Добавить ферму";
+    document.getElementById("saveBtn").textContent = "Сохранить";
+    document.getElementById("fType").value = "Опыт / Мобы";
     document.getElementById("fName").value = "";
     document.getElementById("fDim").value = "Верхний мир";
     document.getElementById("fAuthor").value = "";
@@ -887,48 +1189,69 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     document.getElementById("fNote").value = "";
     draftCover = "";
     draftNoteImgs = [];
-    document.getElementById("fCoverInput").value = "";
-    document.getElementById("fNoteImgsInput").value = "";
     renderDraftPreviews();
-  }
-
-  function openAddModal() {
-    if (!checkClanPass()) return;
-    editingFarmId = null;
-    document.getElementById("modalTitle").textContent = "Добавить ферму";
-    document.getElementById("saveBtn").textContent = "Сохранить";
-    resetFormFields();
     document.getElementById("addModal").classList.add("open");
   }
 
   function openEditModal(id) {
     if (!checkClanPass()) return;
-    const farm = farms.find(f => f.id === id);
-    if (!farm) return;
+    const f = farms.find(item => item.id === id);
+    if (!f) return;
 
-    editingFarmId = id;
-    document.getElementById("modalTitle").textContent = "Редактировать ферму";
+    editingId = id;
+    document.getElementById("addModalTitle").textContent = "Редактировать ферму";
     document.getElementById("saveBtn").textContent = "Сохранить изменения";
-
-    document.getElementById("fType").value = farm.type || "Опыт / Мобы";
-    document.getElementById("fName").value = farm.name || "";
-    document.getElementById("fDim").value = farm.dim || "Верхний мир";
-    document.getElementById("fAuthor").value = farm.author === "Не указан" ? "" : (farm.author || "");
-    document.getElementById("fX").value = farm.x ?? "";
-    document.getElementById("fY").value = farm.y ?? "";
-    document.getElementById("fZ").value = farm.z ?? "";
-    document.getElementById("fRate").value = farm.rate || "";
-    document.getElementById("fPrio").value = farm.prio || "med";
-    document.getElementById("fNote").value = farm.note || "";
-
-    draftCover = farm.cover || "";
-    draftNoteImgs = Array.isArray(farm.noteImgs) ? farm.noteImgs.slice() : [];
-
-    document.getElementById("fCoverInput").value = "";
-    document.getElementById("fNoteImgsInput").value = "";
-
+    document.getElementById("fType").value = f.type || "Другое";
+    document.getElementById("fName").value = f.name || "";
+    document.getElementById("fDim").value = f.dim || "Верхний мир";
+    document.getElementById("fAuthor").value = f.author || "";
+    document.getElementById("fX").value = f.x ?? "";
+    document.getElementById("fY").value = f.y ?? "";
+    document.getElementById("fZ").value = f.z ?? "";
+    document.getElementById("fRate").value = f.rate || "";
+    document.getElementById("fPrio").value = f.prio || "med";
+    document.getElementById("fNote").value = f.note || "";
+    draftCover = f.cover || "";
+    draftNoteImgs = Array.isArray(f.noteImgs) ? f.noteImgs.slice() : [];
     renderDraftPreviews();
     document.getElementById("addModal").classList.add("open");
+  }
+
+  function openReportModal(id) {
+    reportingId = id;
+    document.getElementById("rUser").value = "";
+    document.getElementById("rText").value = "";
+    document.getElementById("reportModal").classList.add("open");
+  }
+
+  async function submitReport() {
+    const text = document.getElementById("rText").value.trim();
+    if (!text) {
+      alert("Опишите, что именно сломалось!");
+      return;
+    }
+    const user = document.getElementById("rUser").value.trim() || "Аноним";
+    const f = farms.find(item => item.id === reportingId);
+    if (!f) return;
+
+    if (!Array.isArray(f.reports)) f.reports = [];
+    const now = new Date().toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
+    f.reports.push({ user, text, date: now });
+
+    closeModal("reportModal");
+    await pushFarms();
+  }
+
+  async function clearReports(id) {
+    const code = prompt("Введите код ремонта, чтобы убрать метку поломки:");
+    if (code !== FIX_PASS) {
+      if (code !== null) alert("Неверный код!");
+      return;
+    }
+    const f = farms.find(item => item.id === id);
+    if (!f) return;
+    f.reports = [];
+    await pushFarms();
   }
 
   function openCloudModal() {
@@ -940,8 +1263,6 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
   }
 
   function closeModal(id) {
-    editingFarmId = null;
-    reportingFarmId = null;
     document.getElementById(id).classList.remove("open");
   }
 
@@ -961,10 +1282,9 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
       return;
     }
 
-    const existingFarm = editingFarmId !== null ? farms.find(f => f.id === editingFarmId) : null;
-
-    const itemData = {
-      id: editingFarmId !== null ? editingFarmId : Date.now(),
+    const existing = editingId ? farms.find(item => item.id === editingId) : null;
+    const item = {
+      id: editingId || Date.now(),
       type: document.getElementById("fType").value,
       name,
       dim: document.getElementById("fDim").value,
@@ -977,73 +1297,20 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
       author: document.getElementById("fAuthor").value.trim() || "Не указан",
       cover: draftCover,
       noteImgs: draftNoteImgs.slice(),
-      reports: existingFarm && Array.isArray(existingFarm.reports) ? existingFarm.reports : []
+      reports: existing && Array.isArray(existing.reports) ? existing.reports : []
     };
 
-    if (editingFarmId !== null) {
-      const idx = farms.findIndex(f => f.id === editingFarmId);
-      if (idx !== -1) {
-        farms[idx] = itemData;
-      }
+    if (editingId) {
+      const idx = farms.findIndex(f => f.id === editingId);
+      if (idx !== -1) farms[idx] = item;
     } else {
-      farms.unshift(itemData);
+      farms.unshift(item);
     }
 
-    editingFarmId = null;
-    resetFormFields();
+    editingId = null;
+    draftCover = "";
+    draftNoteImgs = [];
     closeModal("addModal");
-    await pushFarms();
-  }
-
-  function openReportModal(id) {
-    const farm = farms.find(f => f.id === id);
-    if (!farm) return;
-    reportingFarmId = id;
-    document.getElementById("reportFarmName").textContent = `Ферма: ${farm.name}`;
-    document.getElementById("rAuthor").value = "";
-    document.getElementById("rText").value = "";
-    document.getElementById("reportModal").classList.add("open");
-  }
-
-  async function submitReport() {
-    const text = document.getElementById("rText").value.trim();
-    if (!text) {
-      alert("Опишите, что именно сломалось!");
-      return;
-    }
-    const author = document.getElementById("rAuthor").value.trim() || "Игрок";
-    const idx = farms.findIndex(f => f.id === reportingFarmId);
-    if (idx === -1) return;
-
-    if (!Array.isArray(farms[idx].reports)) {
-      farms[idx].reports = [];
-    }
-
-    const now = new Date();
-    const dateStr = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) + " " +
-                    now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-
-    farms[idx].reports.push({
-      author,
-      text,
-      date: dateStr
-    });
-
-    reportingFarmId = null;
-    closeModal("reportModal");
-    await pushFarms();
-  }
-
-  async function clearReports(id) {
-    const code = prompt("Чтобы снять метку поломки, введите секретный код:");
-    if (code === null) return;
-    if (code.trim() !== REPORT_CLEAR_CODE) {
-      alert("Неверный код! Метка поломки не снята.");
-      return;
-    }
-    const idx = farms.findIndex(f => f.id === id);
-    if (idx === -1) return;
-    farms[idx].reports = [];
     await pushFarms();
   }
 
@@ -1081,8 +1348,9 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     const tf = document.getElementById("typeFilter").value;
     const pf = document.getElementById("prioFilter").value;
 
+    const brokenCount = farms.filter(f => Array.isArray(f.reports) && f.reports.length > 0).length;
     document.getElementById("statTotal").textContent = farms.length;
-    document.getElementById("statBroken").textContent = farms.filter(f => Array.isArray(f.reports) && f.reports.length > 0).length;
+    document.getElementById("statBroken").textContent = brokenCount;
     document.getElementById("statCrit").textContent = farms.filter(f => f.prio === "crit").length;
 
     const prioMap = {
@@ -1109,27 +1377,19 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
     grid.innerHTML = filtered.map(f => {
       const p = prioMap[f.prio] || prioMap.low;
       const coordStr = `${f.x} ${f.y} ${f.z}`;
-      const reports = Array.isArray(f.reports) ? f.reports : [];
-      const isBroken = reports.length > 0;
+      const hasReports = Array.isArray(f.reports) && f.reports.length > 0;
 
-      const brokenBannerHtml = isBroken
+      const brokenBannerHtml = hasReports
         ? `<div class="broken-banner">
-             <div class="broken-left">
-               <div class="excl-icon">!</div>
-               <div class="broken-info">
-                 <b>ТРЕБУЕТСЯ РЕМОНТ (${reports.length})</b>
-                 <span>Ферма сломана! Смотрите репорт ниже.</span>
-               </div>
-             </div>
-             <button class="fix-btn" onclick="clearReports(${f.id})">✓ Починили</button>
+             <div><span class="excl-badge">!</span>ТРЕБУЕТСЯ РЕМОНТ (${f.reports.length})</div>
+             <button class="copy-btn" onclick="clearReports(${f.id})">✓ Починили</button>
            </div>`
         : "";
 
-      const reportsBoxHtml = isBroken
-        ? `<div class="report-box">
-             <div class="report-box-title">🚨 Репорты о поломке:</div>
-             ${reports.map(r => `<div class="report-item"><b>${esc(r.author)}</b> (${esc(r.date || "")}): ${esc(r.text)}</div>`).join("")}
-           </div>`
+      const reportsBoxHtml = hasReports
+        ? `<div class="reports-list">${f.reports.map(r =>
+            `<div class="report-item"><b>${esc(r.user)}</b> (${esc(r.date || "")}): ${esc(r.text)}</div>`
+          ).join("")}</div>`
         : "";
 
       const coverHtml = f.cover
@@ -1140,9 +1400,11 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
         : "";
 
       return `
-        <div class="card ${isBroken ? "broken" : ""}">
-          ${brokenBannerHtml}
-          ${coverHtml}
+        <div class="card ${hasReports ? "broken" : ""}">
+          <div>
+            ${brokenBannerHtml}
+            ${coverHtml}
+          </div>
           <div class="card-body">
             <div>
               <div class="card-top">
@@ -1165,8 +1427,8 @@ const REPORT_CLEAR_CODE = "ROMEFARMS";
           </div>
           <div class="card-foot">
             <span>Построил: <b>${esc(f.author)}</b></span>
-            <div class="card-foot-actions">
-              <button class="report-btn" onclick="openReportModal(${f.id})">⚠ Репорт</button>
+            <div class="foot-btns">
+              <button class="warn" onclick="openReportModal(${f.id})">⚠ Репорт</button>
               <button class="edit-btn" onclick="openEditModal(${f.id})">Редактировать</button>
               <button class="danger" onclick="deleteFarm(${f.id})">Удалить</button>
             </div>
